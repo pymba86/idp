@@ -7,7 +7,7 @@ export const createStore = (): SessionStore<{id: string}> => {
     const get = async (sid: string) => {
         const sess = store.get(sid);
         if (sess) {
-            return JSON.parse(sess, (key, value) => {
+            return JSON.parse(sess, (_key, value) => {
                 return value;
             });
         }
@@ -41,6 +41,7 @@ export function createHandlers() {
     const store = createStore()
 
     const getUserSession = nextSession({
+        name: 'user',
         store,
         genId: () => nanoid(),
         cookie: {

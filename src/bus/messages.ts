@@ -1,4 +1,3 @@
-
 export const TASK_STATES = {
     created: 0,
     retry: 1,
@@ -7,6 +6,19 @@ export const TASK_STATES = {
     expired: 4,
     cancelled: 5,
     failed: 6,
+}
+
+export type SelectTask<T = object> = {
+    id: string;
+    retryCount: number;
+    state: number;
+    name: string;
+    data: T;
+    expireInSeconds: number
+}
+
+export type BusQueries = {
+    getTasks: (props: { queue: string; amount: number }) => Promise<SelectTask[]>;
 }
 
 export type TaskState = (typeof TASK_STATES)[keyof typeof TASK_STATES];

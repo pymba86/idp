@@ -46,6 +46,7 @@ export interface SessionStore<T extends SessionRecord> {
 }
 
 export interface Options<T extends SessionRecord> {
+    name: string;
     store: SessionStore<T>;
     genId?: () => string;
     touchAfter?: number;
