@@ -1,0 +1,12 @@
+{
+  "exec": "tsc && node ./lib/index.js || exit 1",
+  "ignore": [
+    "node_modules/**/node_modules"
+  ],
+  "watch": [
+    "./src",
+    ".env"
+  ],
+  "ext": "json,js,jsx,ts,tsx",
+  "delay": 500
+}

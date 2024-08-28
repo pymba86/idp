@@ -1,0 +1,34 @@
+{
+  "name": "@elkcloud/idp",
+  "type": "module",
+  "version": "0.1.0",
+  "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "rm -rf lib && tsc",
+    "dev": "rm -rf lib && nodemon"
+  },
+  "engines": {
+    "node": "^20.0.0"
+  },
+  "dependencies": {
+    "camelcase": "^8.0.0",
+    "cookie": "^0.6.0",
+    "dotenv": "^16.0.0",
+    "koa": "^2.15.2",
+    "nanoid": "^5.0.1",
+    "slonik": "^37.3.1",
+    "yargs": "^17.6.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/koa": "^2.15.0",
+    "@types/node": "^20.0.0",
+    "@types/cookie": "^0.6.0",
+    "@types/yargs": "^17.0.13",
+    "nodemon": "^3.1.0",
+    "typescript": "^5.0.0"
+  }
+}
