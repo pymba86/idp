@@ -6,7 +6,6 @@ export const createTaskWorker = (
     options: {
         handler: (event: SelectTask) => Promise<any>;
         queries: BusQueries;
-        queue: string;
         maxConcurrency: number;
         poolIntervalInMs: number;
         refillThresholdPct: number;
@@ -16,7 +15,6 @@ export const createTaskWorker = (
 
     const {
         maxConcurrency,
-        queue,
         handler,
         poolIntervalInMs,
         queries,
@@ -35,7 +33,6 @@ export const createTaskWorker = (
 
             const tasks = await queries.getTasks({
                 amount: requestedAmount,
-                queue
             })
 
             hasMoreTasks = tasks.length === requestedAmount;

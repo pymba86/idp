@@ -18,7 +18,7 @@ export type SelectTask<T = object> = {
 }
 
 export type BusQueries = {
-    getTasks: (props: { queue: string; amount: number }) => Promise<SelectTask[]>;
+    getTasks: (props: {amount: number }) => Promise<SelectTask[]>;
 }
 
 export type TaskState = (typeof TASK_STATES)[keyof typeof TASK_STATES];

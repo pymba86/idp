@@ -24,6 +24,7 @@
     ]
   },
   "include": [
-    "src"
+    "src",
+    "node_modules/@types/node/timers.d.ts"
   ]
 }

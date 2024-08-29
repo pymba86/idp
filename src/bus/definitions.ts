@@ -52,8 +52,8 @@ export interface TaskDefinition<T> extends DefineTaskProps<T>{
     from: (input:T, config?: Partial<TaskConfig>) => Task<T>
 }
 
-export interface Handler<Input> {
-    (props: {name: string, input: Input}): Promise<any>
+export interface Handler<Data> {
+    (props: {name: string, data: Data}): Promise<any>
 }
 
 export interface TaskHandler<T>  extends TaskDefinition<T> {
