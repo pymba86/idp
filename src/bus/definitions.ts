@@ -95,4 +95,3 @@ export const createTaskHandler = <T>(definition: TaskDefinition<T>, handler: Han
         queue: definition.queue,
     }
 }
-

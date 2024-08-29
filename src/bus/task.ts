@@ -1,6 +1,18 @@
 import {createWorker} from "./worker.js";
 import {BusQueries, SelectTask} from "./messages.js";
 import {resolveWithinSeconds} from "./utils.js";
+import {serializeError} from "serialize-error";
+
+export function mapCompletionDataArg(data: any) {
+    if (data === null || typeof data === 'undefined' || typeof data === 'function') {
+        return null;
+    }
+
+    const result = typeof data === 'object' && !Array.isArray(data)
+        ? data : {value: data};
+
+    return serializeError(result);
+}
 
 export const createTaskWorker = (
     options: {
@@ -23,6 +35,14 @@ export const createTaskWorker = (
 
     let hasMoreTasks = false;
 
+    async function resolveTask(task: SelectTask, err: unknown, result?: unknown) {
+        activeTasks.delete(task.id);
+
+        if (hasMoreTasks && activeTasks.size / maxConcurrency <= refillThresholdPct) {
+            taskWorker.notify();
+        }
+    }
+
     const taskWorker = createWorker(
         async () => {
             if (activeTasks.size >= maxConcurrency) {
@@ -44,10 +64,10 @@ export const createTaskWorker = (
             tasks.forEach((task) => {
                 const taskPromise = resolveWithinSeconds(handler(task), task.expireInSeconds)
                     .then((result) => {
-                        resolveTask(task, null, result);
+                        return resolveTask(task, null, result);
                     })
                     .catch((err) => {
-                        resolveTask(task, err);
+                        return resolveTask(task, err);
                     });
 
                 activeTasks.set(task.id, taskPromise);

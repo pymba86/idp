@@ -17,6 +17,11 @@ export type SelectTask<T = object> = {
     expireInSeconds: number
 }
 
+export type TaskResult = {
+    id: string;
+    state:
+}
+
 export type BusQueries = {
     getTasks: (props: {amount: number }) => Promise<SelectTask[]>;
 }

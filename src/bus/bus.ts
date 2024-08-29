@@ -70,8 +70,6 @@ export function createBus(options: BusOptions): Bus {
         }
     })
 
-    const notifyWorker = debounce(() => taskWorker.notify(), { ms: 75, maxMs: 150 });
-
     function register(...definitions: TaskHandler<any>[]) {
         definitions.forEach((definition) => {
             if (taskHandlers.has(definition.name)) {
@@ -101,7 +99,7 @@ export function createBus(options: BusOptions): Bus {
 
         const hasEffectToCurrentWorker = sendTasks.some((t) => taskHandlers.has(t.name));
         if (hasEffectToCurrentWorker) {
-            notifyWorker();
+            taskWorker.notify()
         }
     }
 
