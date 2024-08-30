@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import yargs from 'yargs';
 import {hideBin} from 'yargs/helpers';
-import { server} from "./commands/index.js";
+import {migrate, server} from "./commands/index.js";
 import process from 'process';
 
 void yargs(hideBin(process.argv))
@@ -16,6 +16,7 @@ void yargs(hideBin(process.argv))
         dotenv.config({path: env});
     })
     .command(server)
+    .command(migrate)
     .demandCommand(1, 'You need at least one command before moving on')
     .showHelpOnFail(false, `Specify --help for available options`)
     .strict()

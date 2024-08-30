@@ -1,5 +1,5 @@
 {
-  "exec": "tsc && node ./lib/index.js || exit 1",
+  "exec": "copyfiles -u 1 src/views/**/* lib && tsc && node ./lib/index.js || exit 1",
   "ignore": [
     "node_modules/**/node_modules"
   ],
@@ -7,6 +7,6 @@
     "./src",
     ".env"
   ],
-  "ext": "json,js,jsx,ts,tsx",
+  "ext": "json,js,jsx,ts,tsx,html",
   "delay": 500
 }

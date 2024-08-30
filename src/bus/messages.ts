@@ -19,7 +19,6 @@ export type SelectTask<T = object> = {
 
 export type TaskResult = {
     id: string;
-    state:
 }
 
 export type BusQueries = {

@@ -5,7 +5,8 @@ export type SessionRecord = Record<string, any>;
 
 export type SessionData<T = SessionRecord> = {
     cookie: Cookie;
-} & T;
+    data: Partial<T>
+}
 
 export type Session<T extends SessionRecord = SessionRecord> = {
     id: string;
@@ -38,11 +39,11 @@ export type Cookie = {
 export interface SessionStore<T extends SessionRecord> {
     get(id: string): Promise<SessionData<T>>;
 
-    set(id: string, session: SessionData<T>): Promise<void>;
+    set(id: string, data: SessionData<T>): Promise<void>;
 
     destroy(id: string): Promise<void>;
 
-    touch(id: string, session: SessionData<T>): Promise<void>;
+    touch(id: string, data: SessionData<T>): Promise<void>;
 }
 
 export interface Options<T extends SessionRecord> {
@@ -74,63 +75,70 @@ export function nextSession<T extends SessionRecord>(options: Options<T>) {
 
     return async (ctx: Context): Promise<Session<T>> => {
 
-        const sessionId = ctx.cookies.get(name);
+        const createSession = (
+            session: {
+                id: string,
+                isNew: boolean,
+                isDestroyed: boolean,
+                isTouched: boolean,
+            } & SessionData<T>): Session<T> => {
 
-        const storeSession = sessionId
-            ? await store.get(sessionId) : null;
-
-        const commit = (session: Session<T>) => async () => {
-            await store.set(session.id, session);
-            commitSession(ctx, name, session);
-        }
-
-        const destroy = (session: Session<T>) => async () => {
-            session.isDestroyed = true;
-            session.cookie.expires = new Date(1);
-            await store.destroy(session.id)
-            commitSession(ctx, name, session);
-        }
-
-        const touch = (session: Session<T>) => () => {
-            session.isTouched = true;
-            const now = Date.now()
-            session.cookie.expires = new Date(now + session.cookie.maxAge * 1000);
-        }
-
-        const regenerate = (session: Session<T>) => async () => {
-            await store.destroy(session.id)
-            session.id = genId()
-        }
-
-        if (storeSession) {
-
-            const session: Session<T> = {
-                ...storeSession,
-                id: sessionId,
-                isDestroyed: false,
-                isNew: false,
-                isTouched: false,
-                commit: commit(this),
-                destroy: destroy(this),
-                touch: touch(this),
-                regenerate: regenerate(this)
-            }
-
-            if (touchAfter >= 0 && session.cookie.expires) {
-
-                const lastTouchedTime =
-                    session.cookie.expires.getTime()
-                    - session.cookie.maxAge * 1000;
-
-                if (Date.now() - lastTouchedTime >= touchAfter * 1000) {
-                    session.touch();
+            return {
+                ...session,
+                async commit() {
+                    await store.set(this.id, this);
+                    commitSession(ctx, name, this);
+                },
+                touch() {
+                    this.isTouched = true;
+                    const now = Date.now()
+                    this.cookie.expires = new Date(now + this.cookie.maxAge! * 1000);
+                },
+                async regenerate() {
+                    await store.destroy(this.id)
+                    this.id = genId()
+                },
+                async destroy() {
+                    this.isDestroyed = true;
+                    this.cookie.expires = new Date(1);
+                    await store.destroy(this.id)
+                    commitSession(ctx, name, this);
                 }
             }
-
-            return session
         }
 
-        return {
+        const sessionId = ctx.cookies.get(name);
+
+        if (sessionId) {
+
+            const storeSession = await store.get(sessionId);
+
+            if (storeSession) {
+
+                const session = createSession({
+                    ...storeSession,
+                    id: sessionId,
+                    isDestroyed: false,
+                    isNew: false,
+                    isTouched: false,
+                })
+
+                if (touchAfter >= 0 && session.cookie.expires) {
+
+                    const lastTouchedTime =
+                        session.cookie.expires.getTime()
+                        - session.cookie.maxAge * 1000;
+
+                    if (Date.now() - lastTouchedTime >= touchAfter * 1000) {
+                        session.touch();
+                    }
+                }
+
+                return session
+            }
+        }
+
+        return createSession({
             id: genId(),
             isNew: true,
             isDestroyed: false,
@@ -142,10 +150,7 @@ export function nextSession<T extends SessionRecord>(options: Options<T>) {
                 sameSite: cookie.sameSite,
                 secure: cookie.secure || false,
             },
-            commit: commit(this),
-            destroy: destroy(this),
-            touch: touch(this),
-            regenerate: regenerate(this)
-        }
+            data: {}
+        })
     }
 }

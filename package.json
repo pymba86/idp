@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "build": "rm -rf lib && tsc",
+    "copyfiles": "copyfiles -u 1 src/views/**/* lib/views",
     "dev": "rm -rf lib && nodemon"
   },
   "engines": {
@@ -18,8 +19,12 @@
     "cookie": "^0.6.0",
     "delay": "^5.0.0",
     "dotenv": "^16.0.0",
+    "eta": "^3.5.0",
     "koa": "^2.15.2",
+    "koa-mount": "^4.0.0",
+    "koa-router": "^12.0.1",
     "nanoid": "^5.0.1",
+    "pino": "^8.20.0",
     "serialize-error": "^11.0.3",
     "slonik": "^37.3.1",
     "yargs": "^17.6.0",
@@ -28,8 +33,11 @@
   "devDependencies": {
     "@types/cookie": "^0.6.0",
     "@types/koa": "^2.15.0",
+    "@types/koa-mount": "^4.0.0",
+    "@types/koa-router": "^7.4.8",
     "@types/node": "^20.0.0",
     "@types/yargs": "^17.0.13",
+    "copyfiles": "^2.4.1",
     "nodemon": "^3.1.0",
     "typescript": "^5.0.0"
   }

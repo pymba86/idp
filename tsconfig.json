@@ -21,10 +21,9 @@
     "baseUrl": "./src",
     "types": [
       "node"
-    ]
+    ],
   },
   "include": [
     "src",
-    "node_modules/@types/node/timers.d.ts"
-  ]
+  ],
 }

@@ -1,7 +1,5 @@
 import {Handler, Task, TaskConfig, TaskHandler} from "./definitions.js";
 import {createTaskWorker} from "./task.js";
-import {debounce} from "./utils.js";
-import {CommonQueryMethods} from "slonik";
 
 export type WorkerConfig = {
     /**
@@ -27,6 +25,7 @@ export type BusOptions = {
 type TaskName = string;
 
 export type Bus = {
+    register: (...handlers: TaskHandler<any>[]) => void;
     start: () => Promise<void>;
     stop: () => Promise<void>;
     send: (tasks: Task | Task[]) => Promise<void>
@@ -40,13 +39,15 @@ export type TaskState = {
 export function createBus(options: BusOptions): Bus {
 
     const {
-        workerConfig = {
-            concurrency: 25,
-            intervalInMs: 1500,
-            refillPct: 0.33,
-        },
-        taskConfig
+        workerConfig
     } = options
+
+    const config = {
+        concurrency: 25,
+        intervalInMs: 1500,
+        refillPct: 0.33,
+        ...workerConfig
+    }
 
     const taskHandlers = new Map<TaskName, TaskState & {handler: Handler<any>}>()
 
@@ -56,9 +57,14 @@ export function createBus(options: BusOptions): Bus {
     };
 
     const taskWorker = createTaskWorker({
-        maxConcurrency: workerConfig.concurrency,
-        poolIntervalInMs: workerConfig.intervalInMs,
-        refillThresholdPct: workerConfig.refillPct,
+        maxConcurrency: config.concurrency,
+        poolIntervalInMs: config.intervalInMs,
+        refillThresholdPct: config.refillPct,
+        queries: {
+            getTasks: async () => {
+                return []
+            }
+        },
         handler: async ({data, name}) => {
             const taskHandler = taskHandlers.get(name);
 
@@ -94,7 +100,7 @@ export function createBus(options: BusOptions): Bus {
         taskWorker.start();
     }
 
-    async function send(tasks: Task | Task[], pool?: CommonQueryMethods) {
+    async function send(tasks: Task | Task[]) {
         const sendTasks = Array.isArray(tasks) ? tasks : [tasks];
 
         const hasEffectToCurrentWorker = sendTasks.some((t) => taskHandlers.has(t.name));
@@ -115,6 +121,7 @@ export function createBus(options: BusOptions): Bus {
 
 
     return {
+        register,
         start,
         stop,
         send

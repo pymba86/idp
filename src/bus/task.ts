@@ -35,7 +35,7 @@ export const createTaskWorker = (
 
     let hasMoreTasks = false;
 
-    async function resolveTask(task: SelectTask, err: unknown, result?: unknown) {
+    async function resolveTask(task: SelectTask) {
         activeTasks.delete(task.id);
 
         if (hasMoreTasks && activeTasks.size / maxConcurrency <= refillThresholdPct) {
@@ -63,11 +63,11 @@ export const createTaskWorker = (
 
             tasks.forEach((task) => {
                 const taskPromise = resolveWithinSeconds(handler(task), task.expireInSeconds)
-                    .then((result) => {
-                        return resolveTask(task, null, result);
+                    .then(() => {
+                        return resolveTask(task);
                     })
-                    .catch((err) => {
-                        return resolveTask(task, err);
+                    .catch(() => {
+                        return resolveTask(task);
                     });
 
                 activeTasks.set(task.id, taskPromise);
