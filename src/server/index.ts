@@ -7,6 +7,7 @@ import {Eta} from "eta";
 import path from "path";
 import {fileURLToPath} from "url";
 import koaErrorHandler from "../middlewares/koa-error-handler.js";
+import {initAuthApis} from "../auth/index.js";
 
 export type ServerOptions = {
     queries: Queries
@@ -35,6 +36,8 @@ export async function startServer(options: ServerOptions) {
     });
 
     app.use(mount('/eta', initApis({eta})))
+
+    app.use(mount('/auth', initAuthApis({eta})))
 
     const server = app.listen(
         config.serverPort, config.serverHost);

@@ -22,7 +22,7 @@ export class RequestError extends Error {
             slots = {}
         } = typeof input === 'string' ? {code: input} : input;
 
-        super();
+        super(code);
 
         this.name = 'RequestError';
         this.code = code;
