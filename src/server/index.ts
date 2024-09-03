@@ -6,6 +6,7 @@ import {initApis} from "../routes/index.js";
 import {Eta} from "eta";
 import path from "path";
 import {fileURLToPath} from "url";
+import koaErrorHandler from "../middlewares/koa-error-handler.js";
 
 export type ServerOptions = {
     queries: Queries
@@ -25,6 +26,8 @@ export async function startServer(options: ServerOptions) {
     } = options
 
     const app = new Koa()
+
+    app.use(koaErrorHandler());
 
     const eta = new Eta({
         views: viewsDirectory,
