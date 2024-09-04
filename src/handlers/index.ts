@@ -1,7 +1,7 @@
 import {nextSession, SessionData, SessionStore} from "../utils/session.js";
 import {nanoid} from "nanoid";
 
-export const createStore = (): SessionStore<{id: string}> => {
+export const createStore = (): SessionStore<{sessionId: string}> => {
     const store = new Map()
 
     const get = async (sid: string) => {
@@ -14,7 +14,7 @@ export const createStore = (): SessionStore<{id: string}> => {
         return null;
     }
 
-    async function set(sid: string, sess: SessionData<{id: string}>) {
+    async function set(sid: string, sess: SessionData<{sessionId: string}>) {
         store.set(sid, JSON.stringify(sess));
     }
 
@@ -40,8 +40,8 @@ export function createHandlers() {
 
     const store = createStore()
 
-    const getUserSession = nextSession({
-        name: 'user',
+    const getSession = nextSession({
+        name: 'sid',
         store,
         genId: () => nanoid(),
         cookie: {
@@ -52,6 +52,6 @@ export function createHandlers() {
     })
 
     return {
-        getUserSession
+        getSession
     }
 }

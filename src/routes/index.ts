@@ -1,7 +1,7 @@
 import Koa from "koa";
 import Router from "koa-router";
 import {RouterOptions} from "./types.js";
-import {RequestError} from "../errors/request-error.js";
+import {RequestError} from "../errors/index.js";
 
 const createRouters = (options: RouterOptions) => {
 

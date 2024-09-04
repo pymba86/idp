@@ -1,6 +1,6 @@
 import {logger} from "../utils/logger.js";
 import {HttpError, Middleware} from "koa";
-import {RequestError} from "../errors/request-error.js";
+import {RequestError} from "../errors/index.js";
 import {ZodError} from "zod";
 import {dictionaries, PhraseCode} from "../phrases/index.js";
 import {conditional} from "../utils/conditional.js";

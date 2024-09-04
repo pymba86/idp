@@ -23,7 +23,8 @@ const viewsDirectory = path.join(currentDirname, "..", "views");
 export async function startServer(options: ServerOptions) {
 
     const {
-        config
+        config,
+        queries
     } = options
 
     const app = new Koa()
@@ -37,7 +38,7 @@ export async function startServer(options: ServerOptions) {
 
     app.use(mount('/eta', initApis({eta})))
 
-    app.use(mount('/auth', initAuthApis({eta})))
+    app.use(mount('/auth', initAuthApis({eta, queries})))
 
     const server = app.listen(
         config.serverPort, config.serverHost);
