@@ -2,6 +2,7 @@ import {Middleware} from "koa";
 import {ParsedUrlQuery} from "querystring";
 import {Queries} from "../queries/index.js";
 import {Client, ClientMetadata} from "../schemas/index.js";
+import {InvalidRequest, InvalidScope, OAuth2ServerError, ServerError} from "./errors.js";
 
 export const makeHandleAuthorization = (options: {
     queries: Queries
@@ -41,19 +42,11 @@ export const makeHandleAuthorization = (options: {
 
     const handleUnsupportedResponseType = async (req: AuthorizationRequest) => {
         const client = await handleClientAuthentication(req);
-        const url = await handleRedirectUri(client.metadata, req);
 
-        switch (req.responseType) {
-            case undefined:
-                url.searchParams.set('error', 'invalid_request');
-                url.searchParams.set('error_description', 'the request is missing a required parameter "response_type"');
-                break;
-            default:
-                url.searchParams.set('error', 'unsupported_response_type');
-                url.searchParams.set(
-                    'error_description',
-                    `the authorization server does not support response type "${req.query.responseType}"`,
-                );
+        if (req.redirectUri) {
+            await validateRedirectUri(client.metadata, req.redirectUri);
+        } else {
+            throw new InvalidRequest('the request is missing a required parameter "redirect_uri"');
         }
     };
 
@@ -86,7 +79,7 @@ export const makeHandleAuthorization = (options: {
         'email'
     ]
 
-    const validateScope = (client: any, scope) => {
+    const validateScope = (scope: string) => {
         const scopes = scope.split(' ');
 
         if (scopes.some((scope) => !supportedScopes.includes(scope))) {
@@ -120,11 +113,16 @@ export const makeHandleAuthorization = (options: {
         }
 
         if (req.scope) {
-            validateScope(client, req.scope);
+            validateScope(req.scope);
         } else {
-            throw new InvalidRequest(
-                "The 'scope' parameter is missing.");
+            throw new InvalidRequest("The 'scope' parameter is missing.");
         }
+
+        // getUserSessionBySessionId
+        // getUserById
+        // bumpUserSession
+        // save auth context
+        // redirect to consent
     };
 
     return (ctx) => {
@@ -138,8 +136,16 @@ export const makeHandleAuthorization = (options: {
                 default:
                     return handleUnsupportedResponseType(request);
             }
-        } catch (error) {
+        } catch (err) {
 
+            const error =
+                err instanceof OAuth2ServerError ? err : new ServerError();
+
+            ctx.status = error.statusCode
+            ctx.body = {
+                error: error.error,
+                error_description: error.errorDescription
+            }
         }
     }
 }
