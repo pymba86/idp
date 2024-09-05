@@ -1,5 +1,5 @@
-import {Eta} from "eta";
+import {Handlers} from "../handlers/index.js";
 
 export type RouterOptions = {
-    eta: Eta
+    handlers: Handlers
 }

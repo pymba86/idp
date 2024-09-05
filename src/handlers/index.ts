@@ -1,7 +1,14 @@
 import {nextSession, SessionData, SessionStore} from "../utils/session.js";
 import {nanoid} from "nanoid";
+import {AuthContext} from "../types/auth.js";
+import {createRender} from "./render.js";
 
-export const createStore = (): SessionStore<{sessionId: string}> => {
+export type StoreData = {
+    userSessionId: string,
+    authContext: AuthContext
+}
+
+export const createStore = (): SessionStore<StoreData> => {
     const store = new Map()
 
     const get = async (sid: string) => {
@@ -14,7 +21,7 @@ export const createStore = (): SessionStore<{sessionId: string}> => {
         return null;
     }
 
-    async function set(sid: string, sess: SessionData<{sessionId: string}>) {
+    async function set(sid: string, sess: SessionData<StoreData>) {
         store.set(sid, JSON.stringify(sess));
     }
 
@@ -51,7 +58,10 @@ export function createHandlers() {
         }
     })
 
+    const render = createRender()
+
     return {
+        render,
         getSession
     }
 }

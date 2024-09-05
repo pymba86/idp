@@ -5,7 +5,7 @@ export type SessionRecord = Record<string, any>;
 
 export type SessionData<T = SessionRecord> = {
     cookie: Cookie;
-    data: T
+    data: Partial<T>
 }
 
 export type Session<T extends SessionRecord = SessionRecord> = {

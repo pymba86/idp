@@ -1,7 +1,7 @@
-import {Eta} from "eta";
 import {Queries} from "../queries/index.js";
+import {Handlers} from "../handlers/index.js";
 
 export type RouterOptions = {
-    eta: Eta,
     queries: Queries
+    handlers: Handlers
 }

@@ -6,13 +6,15 @@ import {RequestError} from "../errors/index.js";
 const createRouters = (options: RouterOptions) => {
 
     const {
-        eta
+        handlers: {
+            render
+        }
     } = options
 
     const router = new Router();
 
     router.get('/', (ctx, next) => {
-        ctx.body = eta.render('index', {name: 'idp'})
+        ctx.body = render('index', {name: 'idp'})
         ctx.status = 200
         return next()
     })

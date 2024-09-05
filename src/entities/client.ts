@@ -11,7 +11,6 @@ export const clientEntity: Entity<
         id: 'id',
         name: 'name',
         secret: 'secret',
-        consent: 'consent',
         description: 'description',
         metadata: 'metadata'
     },

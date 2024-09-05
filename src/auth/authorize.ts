@@ -1,21 +1,25 @@
-import {Middleware} from "koa";
+import {Context, Middleware} from "koa";
 import {ParsedUrlQuery} from "querystring";
 import {Queries} from "../queries/index.js";
 import {Client, ClientMetadata} from "../schemas/index.js";
 import {InvalidRequest, InvalidScope, OAuth2ServerError, ServerError} from "./errors.js";
+import {Handlers} from "../handlers/index.js";
 
-export const makeHandleAuthorization = (options: {
-    queries: Queries
-}): Middleware => {
+export const makeHandleAuthorization = <StateT, ContextT>(options: {
+    queries: Queries,
+    handlers: Handlers
+}): Middleware<StateT, ContextT> => {
 
     const {
         queries: {
             clients: {
                 findClientById
             }
+        },
+        handlers: {
+            getSession
         }
     } = options
-
 
     interface AuthorizationRequest {
         responseType?: string;
@@ -23,7 +27,6 @@ export const makeHandleAuthorization = (options: {
         clientId?: string;
         redirectUri?: string;
         scope?: string;
-        state?: string;
     }
 
     const parseQueryParam = (param: string | string[] | undefined) => {
@@ -94,6 +97,7 @@ export const makeHandleAuthorization = (options: {
     ]
 
     const handleCodeResponseType = async (
+        ctx: Context,
         req: AuthorizationRequest,
     ) => {
 
@@ -104,12 +108,13 @@ export const makeHandleAuthorization = (options: {
         } else {
             throw new InvalidRequest('the request is missing a required parameter "redirect_uri"');
         }
-
         if (req.responseMode) {
             if (!responseModes.includes(req.responseMode)) {
                 throw new InvalidRequest(
                     "Please use 'query,' 'fragment,' or 'form_post' as the response_mode value.");
             }
+        } else {
+            throw new InvalidRequest("The 'response_mode' parameter is missing.");
         }
 
         if (req.scope) {
@@ -118,29 +123,54 @@ export const makeHandleAuthorization = (options: {
             throw new InvalidRequest("The 'scope' parameter is missing.");
         }
 
-        // getUserSessionBySessionId
+        const session = await getSession(ctx)
+
+        const {userSessionId} = session.data
+
+        if (userSessionId) {
+
+        } else {
+
+            session.data.authContext = req
+
+            await session.commit()
+
+            ctx.redirect('/auth/pwd')
+            return;
+        }
+
+        // getUserSessionById
         // getUserById
         // bumpUserSession
         // save auth context
         // redirect to consent
+        session.data.authContext = {
+            ...req,
+            completed: true,
+            userId: '1'
+        }
+
+        await session.commit()
+
+        ctx.redirect('/auth/consent');
     };
 
-    return (ctx) => {
+    return async (ctx) => {
 
         const request = makeAuthorizationRequest(ctx.query)
 
         try {
             switch (request.responseType) {
                 case 'code':
-                    return handleCodeResponseType(request);
+                    await handleCodeResponseType(ctx, request);
+                    break
                 default:
-                    return handleUnsupportedResponseType(request);
+                    await handleUnsupportedResponseType(request);
+                    break
             }
         } catch (err) {
-
             const error =
                 err instanceof OAuth2ServerError ? err : new ServerError();
-
             ctx.status = error.statusCode
             ctx.body = {
                 error: error.error,
