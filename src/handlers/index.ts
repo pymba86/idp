@@ -1,14 +1,17 @@
-import {nextSession, SessionData, SessionStore} from "../utils/session.js";
+import {nextSession, SessionData, SessionRecord, SessionStore} from "./session.js";
 import {nanoid} from "nanoid";
 import {AuthContext} from "../types/auth.js";
 import {createRender} from "./render.js";
 
-export type StoreData = {
+export type SessionStoreData = {
     userSessionId: string,
-    authContext: AuthContext
 }
 
-export const createStore = (): SessionStore<StoreData> => {
+export type InteractionStoreData = {
+    authContext: AuthContext,
+}
+
+export const createStore = <T extends SessionRecord>(): SessionStore<T> => {
     const store = new Map()
 
     const get = async (sid: string) => {
@@ -21,7 +24,7 @@ export const createStore = (): SessionStore<StoreData> => {
         return null;
     }
 
-    async function set(sid: string, sess: SessionData<StoreData>) {
+    async function set(sid: string, sess: SessionData<T>) {
         store.set(sid, JSON.stringify(sess));
     }
 
@@ -45,11 +48,21 @@ export type Handlers = ReturnType<typeof createHandlers>
 
 export function createHandlers() {
 
-    const store = createStore()
 
     const getSession = nextSession({
         name: 'sid',
-        store,
+        store: createStore<SessionStoreData>(),
+        genId: () => nanoid(),
+        cookie: {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: false,
+        }
+    })
+
+    const getInteraction = nextSession({
+        name: 'interaction',
+        store: createStore<InteractionStoreData>(),
         genId: () => nanoid(),
         cookie: {
             httpOnly: true,
@@ -62,6 +75,7 @@ export function createHandlers() {
 
     return {
         render,
+        getInteraction,
         getSession
     }
 }

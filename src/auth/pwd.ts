@@ -10,7 +10,7 @@ export const makeHandlePwdGet = <StateT, ContextT>(options: {
 
     const {
         handlers: {
-            getSession,
+            getInteraction,
             render
         },
     } = options
@@ -21,7 +21,7 @@ export const makeHandlePwdGet = <StateT, ContextT>(options: {
             data: {
                 authContext
             }
-        } = await getSession(ctx)
+        } = await getInteraction(ctx)
 
 
         if (!authContext) {
@@ -29,7 +29,7 @@ export const makeHandlePwdGet = <StateT, ContextT>(options: {
             return;
         }
 
-        ctx.body = render('pwd', {})
+        ctx.body = render('pwd')
         ctx.status = 200
     }
 }
@@ -41,6 +41,7 @@ export const makeHandlePwdPost = <StateT, ContextT>(options: {
 
     const {
         handlers: {
+            getInteraction,
             getSession
         },
     } = options
@@ -48,23 +49,25 @@ export const makeHandlePwdPost = <StateT, ContextT>(options: {
     return async (ctx) => {
 
         const session = await getSession(ctx);
+        const interaction = await getInteraction(ctx);
 
-        const {authContext} = session.data;
+        const {authContext} = interaction.data;
 
         if (!authContext) {
             return
         }
 
-        authContext.completed = true
+        authContext.authCompleted = true
         authContext.userId = '1'
 
         const id = nanoid()
 
-        session.data.authContext = authContext;
+        interaction.data.authContext = authContext;
         session.data.userSessionId = id;
 
         await session.commit()
+        await interaction.commit()
 
-        ctx.redirect('/auth/consent')
+        ctx.redirect(`/auth/${interaction.id}/consent`)
     }
 }

@@ -15,27 +15,27 @@ const createRouters = (options: RouterOptions) => {
 
     const router = new Router();
 
-    router.get('/authorize', makeHandleAuthorization({
+    router.get('/', makeHandleAuthorization({
         queries,
         handlers
     }))
 
-    router.get('/pwd', makeHandlePwdGet({
+    router.get('/:id/pwd', makeHandlePwdGet({
         queries,
         handlers
     }))
 
-    router.post('/pwd', makeHandlePwdPost({
+    router.post('/:id/pwd', makeHandlePwdPost({
         queries,
         handlers
     }))
 
-    router.get('/consent', makeHandleConsentGet({
+    router.get('/:id/consent', makeHandleConsentGet({
         queries,
         handlers
     }))
 
-    router.post('/consent', makeHandleConsentPost({
+    router.post('/:id/consent', makeHandleConsentPost({
         queries,
         handlers,
     }))

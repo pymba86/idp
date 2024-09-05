@@ -10,7 +10,7 @@ export const makeHandleConsentGet = <StateT, ContextT>(options: {
 
     const {
         handlers: {
-            getSession,
+            getInteraction,
             render
         },
     } = options
@@ -19,9 +19,9 @@ export const makeHandleConsentGet = <StateT, ContextT>(options: {
 
         const {
             data: {
-                authContext
+                authContext,
             }
-        } = await getSession(ctx)
+        } = await getInteraction(ctx)
 
 
         if (!authContext) {
@@ -29,12 +29,12 @@ export const makeHandleConsentGet = <StateT, ContextT>(options: {
             return;
         }
 
-        if (!authContext.completed) {
+        if (!authContext.authCompleted) {
             ctx.redirect('/auth/bad')
             return;
         }
 
-        ctx.body = render('consent', {})
+        ctx.body = render('consent')
         ctx.status = 200
 
     }
@@ -47,30 +47,28 @@ export const makeHandleConsentPost = <StateT, ContextT>(options: {
 
     const {
         handlers: {
-            getSession
+            getInteraction
         },
     } = options
 
     return async (ctx) => {
 
-        const session = await getSession(ctx);
+        const interaction = await getInteraction(ctx);
 
-        const {authContext} = session.data;
+        const {authContext} = interaction.data;
 
         if (!authContext) {
             return
         }
 
-        if (!authContext.completed) {
+        if (!authContext.authCompleted) {
             ctx.redirect('/auth/bad');
             return
         }
 
         const code = nanoid()
 
-        delete session.data.authContext;
-
-        await session.commit()
+        await interaction.destroy()
 
         if (authContext.redirectUri) {
             ctx.redirect(authContext.redirectUri + '?code=' + code)
