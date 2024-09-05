@@ -3,14 +3,14 @@ import {Handlers} from "../handlers/index.js";
 import {Middleware} from "koa";
 import {nanoid} from "nanoid";
 
-export const makeHandlePwdGet = <StateT, ContextT>(options: {
+export const makeHandleLoginGet = <StateT, ContextT>(options: {
     queries: Queries,
     handlers: Handlers,
 }): Middleware<StateT, ContextT> => {
 
     const {
         handlers: {
-            getInteraction,
+            getSession,
             render
         },
     } = options
@@ -21,7 +21,7 @@ export const makeHandlePwdGet = <StateT, ContextT>(options: {
             data: {
                 authContext
             }
-        } = await getInteraction(ctx)
+        } = await getSession(ctx)
 
 
         if (!authContext) {
@@ -29,19 +29,18 @@ export const makeHandlePwdGet = <StateT, ContextT>(options: {
             return;
         }
 
-        ctx.body = render('pwd')
+        ctx.body = render('login')
         ctx.status = 200
     }
 }
 
-export const makeHandlePwdPost = <StateT, ContextT>(options: {
+export const makeHandleLoginPost = <StateT, ContextT>(options: {
     queries: Queries,
     handlers: Handlers,
 }): Middleware<StateT, ContextT> => {
 
     const {
         handlers: {
-            getInteraction,
             getSession
         },
     } = options
@@ -49,9 +48,8 @@ export const makeHandlePwdPost = <StateT, ContextT>(options: {
     return async (ctx) => {
 
         const session = await getSession(ctx);
-        const interaction = await getInteraction(ctx);
 
-        const {authContext} = interaction.data;
+        const {authContext} = session.data;
 
         if (!authContext) {
             return
@@ -62,12 +60,11 @@ export const makeHandlePwdPost = <StateT, ContextT>(options: {
 
         const id = nanoid()
 
-        interaction.data.authContext = authContext;
+        session.data.authContext = authContext;
         session.data.userSessionId = id;
 
         await session.commit()
-        await interaction.commit()
 
-        ctx.redirect(`/auth/${interaction.id}/consent`)
+        ctx.redirect(`/auth/consent`)
     }
 }

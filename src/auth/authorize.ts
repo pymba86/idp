@@ -17,8 +17,7 @@ export const makeHandleAuthorization = <StateT, ContextT>(options: {
             }
         },
         handlers: {
-            getSession,
-            getInteraction
+            getSession
         }
     } = options
 
@@ -124,25 +123,23 @@ export const makeHandleAuthorization = <StateT, ContextT>(options: {
             throw new InvalidRequest("The 'scope' parameter is missing.");
         }
 
+        const session = await getSession(ctx)
+
         const {
             data: {
                 userSessionId
             }
-        } = await getSession(ctx)
-
-        const interaction = await getInteraction(ctx)
-
-        interaction.cookie.path = '/auth/' + interaction.id
+        } = session
 
         if (userSessionId) {
 
         } else {
 
-            interaction.data.authContext = req
+            session.data.authContext = req
 
-            await interaction.commit()
+            await session.commit()
 
-            ctx.redirect(`/auth/${interaction.id}/pwd`)
+            ctx.redirect(`/auth/login`)
             return;
         }
 
@@ -150,16 +147,15 @@ export const makeHandleAuthorization = <StateT, ContextT>(options: {
         // getUserById
         // bumpUserSession
 
-        // save auth context
-        interaction.data.authContext = {
+        session.data.authContext = {
             ...req,
             authCompleted: true,
             userId: '1'
         }
 
-        await interaction.commit()
+        await session.commit()
 
-        ctx.redirect(`/auth/${interaction.id}/consent`);
+        ctx.redirect(`/auth/consent`);
     };
 
     return async (ctx) => {

@@ -10,7 +10,7 @@ export const makeHandleConsentGet = <StateT, ContextT>(options: {
 
     const {
         handlers: {
-            getInteraction,
+            getSession,
             render
         },
     } = options
@@ -21,7 +21,7 @@ export const makeHandleConsentGet = <StateT, ContextT>(options: {
             data: {
                 authContext,
             }
-        } = await getInteraction(ctx)
+        } = await getSession(ctx)
 
 
         if (!authContext) {
@@ -47,15 +47,15 @@ export const makeHandleConsentPost = <StateT, ContextT>(options: {
 
     const {
         handlers: {
-            getInteraction
+            getSession
         },
     } = options
 
     return async (ctx) => {
 
-        const interaction = await getInteraction(ctx);
+        const session = await getSession(ctx);
 
-        const {authContext} = interaction.data;
+        const {authContext} = session.data;
 
         if (!authContext) {
             return
@@ -68,7 +68,9 @@ export const makeHandleConsentPost = <StateT, ContextT>(options: {
 
         const code = nanoid()
 
-        await interaction.destroy()
+        delete session.data.authContext;
+
+        await session.commit()
 
         if (authContext.redirectUri) {
             ctx.redirect(authContext.redirectUri + '?code=' + code)

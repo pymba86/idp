@@ -2,8 +2,9 @@ import Koa from "koa";
 import {RouterOptions} from "./types.js";
 import Router from "koa-router";
 import {makeHandleAuthorization} from "./authorize.js";
-import {makeHandlePwdGet, makeHandlePwdPost} from "./pwd.js";
+import {makeHandleLoginPost, makeHandleLoginGet} from "./login.js";
 import {makeHandleConsentGet, makeHandleConsentPost} from "./consent.js";
+import {makeHandleRegisterGet} from "./register.js";
 
 
 const createRouters = (options: RouterOptions) => {
@@ -20,22 +21,27 @@ const createRouters = (options: RouterOptions) => {
         handlers
     }))
 
-    router.get('/:id/pwd', makeHandlePwdGet({
+    router.get('/login', makeHandleLoginGet({
         queries,
         handlers
     }))
 
-    router.post('/:id/pwd', makeHandlePwdPost({
+    router.get('/register', makeHandleRegisterGet({
         queries,
         handlers
     }))
 
-    router.get('/:id/consent', makeHandleConsentGet({
+    router.post('/login', makeHandleLoginPost({
         queries,
         handlers
     }))
 
-    router.post('/:id/consent', makeHandleConsentPost({
+    router.get('/consent', makeHandleConsentGet({
+        queries,
+        handlers
+    }))
+
+    router.post('/consent', makeHandleConsentPost({
         queries,
         handlers,
     }))

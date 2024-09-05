@@ -5,9 +5,6 @@ import {createRender} from "./render.js";
 
 export type SessionStoreData = {
     userSessionId: string,
-}
-
-export type InteractionStoreData = {
     authContext: AuthContext,
 }
 
@@ -48,21 +45,9 @@ export type Handlers = ReturnType<typeof createHandlers>
 
 export function createHandlers() {
 
-
     const getSession = nextSession({
         name: 'sid',
         store: createStore<SessionStoreData>(),
-        genId: () => nanoid(),
-        cookie: {
-            httpOnly: true,
-            sameSite: 'lax',
-            secure: false,
-        }
-    })
-
-    const getInteraction = nextSession({
-        name: 'interaction',
-        store: createStore<InteractionStoreData>(),
         genId: () => nanoid(),
         cookie: {
             httpOnly: true,
@@ -75,7 +60,6 @@ export function createHandlers() {
 
     return {
         render,
-        getInteraction,
         getSession
     }
 }
