@@ -6,6 +6,7 @@ import {makeHandleLoginPost, makeHandleLoginGet} from "./login.js";
 import {makeHandleConsentGet, makeHandleConsentPost} from "./consent.js";
 import {makeHandleRegisterGet} from "./register.js";
 import koaInertia from "../middlewares/koa-inertia.js";
+import koaBody from "koa-body";
 
 
 const createRouters = (options: RouterOptions) => {
@@ -16,6 +17,8 @@ const createRouters = (options: RouterOptions) => {
     } = options
 
     const router: AuthRouter = new Router();
+
+    router.use(koaBody())
 
     router.use(
         koaInertia({

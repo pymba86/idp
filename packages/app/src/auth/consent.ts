@@ -2,16 +2,17 @@ import {Queries} from "../queries/index.js";
 import {Handlers} from "../handlers/index.js";
 import {Middleware} from "koa";
 import {nanoid} from "nanoid";
+import {IRouterParamContext} from "koa-router";
+import {WithInertiaContext} from "../middlewares/koa-inertia.js";
 
-export const makeHandleConsentGet = <StateT, ContextT>(options: {
+export const makeHandleConsentGet = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
     handlers: Handlers,
-}): Middleware<StateT, ContextT> => {
+}): Middleware<StateT, WithInertiaContext<ContextT>> => {
 
     const {
         handlers: {
-            getSession,
-            render
+            getSession
         },
     } = options
 
@@ -34,8 +35,7 @@ export const makeHandleConsentGet = <StateT, ContextT>(options: {
             return;
         }
 
-        ctx.body = render('consent')
-        ctx.status = 200
+        ctx.inertia.render('consent')
 
     }
 }

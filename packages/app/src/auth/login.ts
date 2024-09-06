@@ -1,9 +1,10 @@
 import {Queries} from "../queries/index.js";
 import {Handlers} from "../handlers/index.js";
 import {Middleware} from "koa";
-import {nanoid} from "nanoid";
 import {IRouterParamContext} from "koa-router";
 import {WithInertiaContext} from "../middlewares/koa-inertia.js";
+import {InvalidRequest} from "./errors.js";
+import {generateStandardId} from "@astoniq/idp-shared";
 
 export const makeHandleLoginGet = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
@@ -34,15 +35,23 @@ export const makeHandleLoginGet = <StateT, ContextT extends IRouterParamContext>
     }
 }
 
-export const makeHandleLoginPost = <StateT, ContextT>(options: {
+export const makeHandleLoginPost = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
     handlers: Handlers,
-}): Middleware<StateT, ContextT> => {
+}): Middleware<StateT, WithInertiaContext<ContextT>> => {
 
     const {
         handlers: {
             getSession
         },
+        queries: {
+            users: {
+                findUserByEmail
+            },
+            userSessions: {
+                insertUserSession
+            }
+        }
     } = options
 
     return async (ctx) => {
@@ -52,16 +61,57 @@ export const makeHandleLoginPost = <StateT, ContextT>(options: {
         const {authContext} = session.data;
 
         if (!authContext) {
-            return
+            throw new InvalidRequest("auth context not found");
         }
 
-        authContext.authCompleted = true
-        authContext.userId = '1'
+        const {
+            email,
+            password
+        } = ctx.request.body
 
-        const id = nanoid()
+        if (typeof email !== 'string') {
+            ctx.inertia.render('login', {error: 'email required'})
+            return;
+        }
+
+        if (email.length === 0) {
+            ctx.inertia.render('login', {error: 'email is not empty', email})
+            return;
+        }
+
+        if (typeof password !== 'string') {
+            ctx.inertia.render('login', {error: 'password required', email})
+            return;
+        }
+
+        if (password.length === 0) {
+            ctx.inertia.render('login', {error: 'password is not empty', email})
+            return;
+        }
+
+        const user = await findUserByEmail(email);
+
+        if (!user) {
+            ctx.inertia.render('login', {error: 'user not found', email})
+            return;
+        }
+
+        const verify = user.password === password
+
+        if (!verify) {
+            ctx.inertia.render('login', {error: 'password is incorrect', email})
+            return;
+        }
+
+        const id = generateStandardId()
+
+        const userSession = await insertUserSession(id, user.id, session.id)
+
+        authContext.authCompleted = true
+        authContext.userId = user.id
 
         session.data.authContext = authContext;
-        session.data.userSessionId = id;
+        session.data.userSessionId = userSession.id;
 
         await session.commit()
 

@@ -25,8 +25,8 @@ const headers = {
     xInertia: 'x-inertia',
     xInertiaVersion: 'x-inertia-version',
     xInertiaLocation: 'x-inertia-location',
-    xInertiaPartialData: 'x-inertia-partial-data',
-    xInertiaPartialComponent: 'x-inertia-partial-component',
+    Vary: 'Vary',
+    ContentType: 'Content-Type'
 };
 
 export default function koaInertia<StateT, ContextT extends IRouterParamContext>(
@@ -46,14 +46,14 @@ export default function koaInertia<StateT, ContextT extends IRouterParamContext>
 
                 if (ctx.headers[headers.xInertia]) {
                     ctx.set({
-                        'Content-Type': 'application/json',
                         [headers.xInertia]: 'true',
-                        Vary: 'Accept',
+                        [headers.ContentType]: 'application/json',
+                        [headers.Vary]: 'Accept',
                     });
                     ctx.body = JSON.stringify(page);
                 } else {
                     ctx.set({
-                        'Content-Type': 'text/html',
+                        [headers.ContentType]: 'text/html',
                     });
                     ctx.body = html(page);
                 }

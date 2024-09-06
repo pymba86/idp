@@ -7,7 +7,7 @@ import {Handlers} from "../handlers/index.js";
 import {WithInertiaContext} from "../middlewares/koa-inertia.js";
 import {IRouterParamContext} from "koa-router";
 
-export const makeHandleAuthorization = <StateT, ContextT  extends IRouterParamContext>(options: {
+export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
     handlers: Handlers
 }): Middleware<StateT, WithInertiaContext<ContextT>> => {
@@ -15,7 +15,10 @@ export const makeHandleAuthorization = <StateT, ContextT  extends IRouterParamCo
     const {
         queries: {
             clients: {
-                findClientById
+                findClientById,
+            },
+            userSessions: {
+                findUserSessionById
             }
         },
         handlers: {
@@ -135,29 +138,31 @@ export const makeHandleAuthorization = <StateT, ContextT  extends IRouterParamCo
 
         if (userSessionId) {
 
-        } else {
+            const userSession = await findUserSessionById(userSessionId)
 
-            session.data.authContext = req
+            if (!userSession) {
+                throw new InvalidRequest("user session not found");
+            }
+
+            // bumpUserSession
+
+            session.data.authContext = {
+                ...req,
+                authCompleted: true,
+                userId: userSession.userId
+            }
 
             await session.commit()
 
-            ctx.redirect(`/auth/login`)
+            ctx.redirect(`/auth/consent`);
             return;
         }
 
-        // getUserSessionById
-        // getUserById
-        // bumpUserSession
-
-        session.data.authContext = {
-            ...req,
-            authCompleted: true,
-            userId: '1'
-        }
+        session.data.authContext = req
 
         await session.commit()
 
-        ctx.redirect(`/auth/consent`);
+        ctx.redirect(`/auth/login`)
     };
 
     return async (ctx) => {
