@@ -1,0 +1,33 @@
+{
+  "name": "@astoniq/idp-schemas",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
+  "exports": {
+    ".": "./lib/index.js"
+  },
+  "scripts": {
+    "precommit": "lint-staged",
+    "build": "rm -rf lib/ && tsc",
+    "build:test": "pnpm build",
+    "dev": "tsc --watch --preserveWatchOutput --incremental",
+    "lint": "eslint --ext .ts src",
+    "lint:report": "pnpm lint --format json --output-file report.json",
+    "prepack": "pnpm build"
+  },
+  "engines": {
+    "node": "^20.0.0"
+  },
+  "dependencies": {
+    "@astoniq/idp-shared": "workspace:^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.22.4"
+  }
+}

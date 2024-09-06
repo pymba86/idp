@@ -11,9 +11,9 @@ node_modules
 /packages/**/report.json
 
 # production
-build
-lib
-dist
+/packages/**/build
+/packages/**/lib
+/packages/**/dist
 
 # logs
 logs
