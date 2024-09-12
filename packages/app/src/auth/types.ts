@@ -9,3 +9,22 @@ export type RouterOptions = {
 }
 
 export type AuthRouter = Router<unknown, WithInertiaContext>
+
+
+export interface AuthorizationRequest {
+    responseType?: string;
+    responseMode?: string;
+    clientId?: string;
+    redirectUri?: string;
+    scope?: string;
+}
+
+export interface TokenRequest {
+    grantType?: string;
+    code?: string;
+    redirectUri?: string;
+    clientId?: string;
+    clientSecret?: string;
+    refreshToken?: string;
+    scope?: string;
+}

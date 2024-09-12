@@ -17,7 +17,7 @@ export const createUserSessionQueries = (pool: CommonQueryMethods) => {
         `)
 
     const insertUserSession = async (id: string, userId: string, sessionId: string) => {
-        const {rows: [entry]} = await pool.query(sql.type(userSessionGuard)`
+        const entry = await pool.maybeOne(sql.type(userSessionGuard)`
             insert into ${table} (${fields.id}, ${fields.userId}, ${fields.sessionId})
             values (${id}, ${userId}, ${sessionId})
             returning *

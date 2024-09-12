@@ -7,6 +7,9 @@ import {makeHandleConsentGet, makeHandleConsentPost} from "./consent.js";
 import {makeHandleRegisterGet} from "./register.js";
 import koaInertia from "../middlewares/koa-inertia.js";
 import koaBody from "koa-body";
+import {makeHandleClientAuthentication} from "./client.js";
+import {makeHandleTokenPost} from "./token.js";
+import errorHandler from "./error-handler.js";
 
 
 const createRouters = (options: RouterOptions) => {
@@ -16,9 +19,14 @@ const createRouters = (options: RouterOptions) => {
         handlers
     } = options
 
+    const clientAuthentication = makeHandleClientAuthentication({
+        queries
+    })
+
     const router: AuthRouter = new Router();
 
     router.use(koaBody())
+    router.use(errorHandler())
 
     router.use(
         koaInertia({
@@ -53,6 +61,12 @@ const createRouters = (options: RouterOptions) => {
     router.post('/consent', makeHandleConsentPost({
         queries,
         handlers,
+    }))
+
+    router.post('/token', makeHandleTokenPost({
+        queries,
+        handlers,
+        clientAuthentication
     }))
 
     return [router]

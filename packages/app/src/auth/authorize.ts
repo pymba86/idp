@@ -6,6 +6,8 @@ import {InvalidRequest, InvalidScope, OAuth2ServerError, ServerError} from "./er
 import {Handlers} from "../handlers/index.js";
 import {WithInertiaContext} from "../middlewares/koa-inertia.js";
 import {IRouterParamContext} from "koa-router";
+import {parseParam} from "./query.js";
+import {AuthorizationRequest} from "./types.js";
 
 export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
@@ -26,25 +28,13 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
         }
     } = options
 
-    interface AuthorizationRequest {
-        responseType?: string;
-        responseMode?: string;
-        clientId?: string;
-        redirectUri?: string;
-        scope?: string;
-    }
-
-    const parseQueryParam = (param: string | string[] | undefined) => {
-        return typeof param === 'string' ? param : undefined
-    }
-
     const makeAuthorizationRequest = (query: ParsedUrlQuery): AuthorizationRequest => {
         return {
-            responseType: parseQueryParam(query.response_type),
-            responseMode: parseQueryParam(query.response_mode),
-            clientId: parseQueryParam(query.client_id),
-            redirectUri: parseQueryParam(query.redirect_uri),
-            scope: parseQueryParam(query.scope)
+            responseType: parseParam(query.response_type),
+            responseMode: parseParam(query.response_mode),
+            clientId: parseParam(query.client_id),
+            redirectUri: parseParam(query.redirect_uri),
+            scope: parseParam(query.scope)
         }
     }
 
@@ -176,7 +166,6 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
                     break
                 default:
                     await handleUnsupportedResponseType(request);
-                    break
             }
         } catch (err) {
             const error =
