@@ -38,6 +38,9 @@ importers:
       eta:
         specifier: ^3.5.0
         version: 3.5.0
+      jose:
+        specifier: ^5.9.2
+        version: 5.9.2
       koa:
         specifier: ^2.15.2
         version: 2.15.3
@@ -1445,6 +1448,10 @@ packages:
 
   /iso8601-duration@1.3.0:
     resolution: {integrity: sha512-K4CiUBzo3YeWk76FuET/dQPH03WE04R94feo5TSKQCXpoXQt9E4yx2CnY737QZnSAI3PI4WlKo/zfqizGx52QQ==}
+    dev: false
+
+  /jose@5.9.2:
+    resolution: {integrity: sha512-ILI2xx/I57b20sd7rHZvgiiQrmp2mcotwsAH+5ajbpFQbrYVQdNHYlQhoA5cFb78CgtBOxtC05TeA+mcgkuCqQ==}
     dev: false
 
   /keygrip@1.1.0:

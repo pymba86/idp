@@ -1,4 +1,4 @@
-export * from './system.js'
+export * from './config.js'
 export * from './client.js'
 export * from './user-session.js'
 export * from './user.js'

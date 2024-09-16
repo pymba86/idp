@@ -6,11 +6,12 @@ const migration: MigrationScript = {
         await pool.query(sql.unsafe`
             create table clients
             (
-                id          varchar(21)  not null,
-                name        varchar(256) not null,
-                secret      varchar(64)  not null,
-                description text,
-                metadata    jsonb        not null,
+                id               varchar(21)  not null,
+                name             varchar(256) not null,
+                secret           varchar(64)  not null,
+                consent_required boolean      not null,
+                description      text,
+                metadata         jsonb        not null,
                 primary key (id)
             );
         `)

@@ -1,11 +1,11 @@
-import {systemEntity} from "../entities/index.js";
+import {configEntity} from "../entities/index.js";
 import {convertToIdentifiers} from "../utils/sql.js";
 import {CommonQueryMethods, DatabaseTransactionConnection, NotFoundError, sql} from "slonik";
 import {Entity, EntityLike} from "../types/index.js";
-import {MigrationState, MigrationStateKey, systemGuard, systemGuards} from "@astoniq/idp-schemas";
+import {MigrationState, MigrationConfigKey, configGuard, configGuards} from "@astoniq/idp-schemas";
 import {z} from 'zod';
 
-const {table, fields} = convertToIdentifiers(systemEntity);
+const {table, fields} = convertToIdentifiers(configEntity);
 
 export const doesTableExist = async <T extends EntityLike<T>, P extends Partial<T>>(pool: CommonQueryMethods, entity: Entity<T, P>) => {
     const {rows: [data]} = await pool.query(
@@ -21,19 +21,19 @@ export const doesTableExist = async <T extends EntityLike<T>, P extends Partial<
 export const getCurrentDatabaseMigrationTimestamp = async (pool: CommonQueryMethods) => {
     try {
 
-        const migrationTableExist = await doesTableExist(pool, systemEntity)
+        const migrationTableExist = await doesTableExist(pool, configEntity)
 
         if (!migrationTableExist) {
             return 0;
         }
 
-        const result = await pool.one(sql.type(systemGuard)`
+        const result = await pool.one(sql.type(configGuard)`
             select *
             from ${table}
-            where ${fields.key} = ${MigrationStateKey.MigrationState}
+            where ${fields.key} = ${MigrationConfigKey.MigrationState}
         `)
 
-        const parsed = systemGuards[MigrationStateKey.MigrationState]
+        const parsed = configGuards[MigrationConfigKey.MigrationState]
             .safeParse(result?.value)
 
         return (parsed.success && parsed.data.timestamp) || 0;
@@ -57,7 +57,7 @@ export const updateMigrationTimestamp = async (
     await connection.query(
         sql.unsafe`
             insert into ${table} (${fields.key}, ${fields.value})
-            values (${MigrationStateKey.MigrationState}, ${sql.jsonb(value)}) on conflict (${fields.key}) do
+            values (${MigrationConfigKey.MigrationState}, ${sql.jsonb(value)}) on conflict (${fields.key}) do
             update set ${fields.value}=excluded.${fields.value}`
     )
 }

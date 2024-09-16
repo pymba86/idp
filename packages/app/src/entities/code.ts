@@ -10,6 +10,7 @@ export const codeEntity: Entity<
     fields: {
         id: 'id',
         userId: 'user_id',
+        userSessionId: 'user_session_id',
         clientId: 'client_id',
         scope: 'scope',
         redirectUri: 'redirect_uri',

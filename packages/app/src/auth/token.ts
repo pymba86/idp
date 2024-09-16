@@ -7,11 +7,12 @@ import {parseParam} from "./query.js";
 import {TokenRequest} from "./types.js";
 import {HandleClientAuthentication} from "./client.js";
 import {InvalidGrant, InvalidRequest, UnsupportedGrantType} from "./errors.js";
-import {nanoid} from "nanoid";
+import {Libraries} from "../libraries/index.js";
 
 export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
     handlers: Handlers,
+    libraries: Libraries,
     clientAuthentication: HandleClientAuthentication
 }): Middleware<StateT, WithInertiaContext<ContextT>> => {
 
@@ -22,6 +23,9 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
                 deleteAuthorizationCode
             }
         },
+        libraries: {
+            jwt
+        },
         clientAuthentication
     } = options
 
@@ -31,12 +35,20 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             code: parseParam(body.code),
             redirectUri: parseParam(body.redirect_uri),
             clientId: parseParam(body.client_id),
+            clientSecret: parseParam(body.client_secret),
             refreshToken: parseParam(body.refresh_token),
             scope: parseParam(body.scope)
         }
     }
 
     const epoch = () => Math.floor(Date.now() / 1000);
+
+    const toEpochSeconds = (date: Date | number): number  => {
+        if (date instanceof Date) {
+            return Math.floor(date.getTime() / 1000);
+        }
+        return Math.floor(date / 1000);
+    }
 
     const handleAuthorizationCodeGrant = async (
         ctx: Context,
@@ -72,9 +84,14 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             throw new InvalidRequest('the request includes an invalid value for parameter "redirect_uri"');
         }
 
-        const accessToken = nanoid()
+        const accessToken = await jwt.sign({
+            sub: authorizationCode.userId,
+            sid: authorizationCode.userSessionId,
+            exp: toEpochSeconds(Date.now() + 10000),
+            scope: authorizationCode.scope
+        })
 
-        await deleteAuthorizationCode(request.code);
+       await deleteAuthorizationCode(request.code);
 
         ctx.body = {
             accessToken

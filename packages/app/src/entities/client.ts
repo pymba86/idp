@@ -12,6 +12,7 @@ export const clientEntity: Entity<
         name: 'name',
         secret: 'secret',
         description: 'description',
+        consentRequired: 'consent_required',
         metadata: 'metadata'
     },
     guard: clientGuard,

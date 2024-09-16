@@ -16,7 +16,8 @@ const createRouters = (options: RouterOptions) => {
 
     const {
         queries,
-        handlers
+        handlers,
+        libraries
     } = options
 
     const clientAuthentication = makeHandleClientAuthentication({
@@ -66,6 +67,7 @@ const createRouters = (options: RouterOptions) => {
     router.post('/token', makeHandleTokenPost({
         queries,
         handlers,
+        libraries,
         clientAuthentication
     }))
 
