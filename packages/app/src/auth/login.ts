@@ -5,6 +5,7 @@ import {IRouterParamContext} from "koa-router";
 import {WithInertiaContext} from "../middlewares/koa-inertia.js";
 import {InvalidRequest} from "./errors.js";
 import {generateStandardId} from "@astoniq/idp-shared";
+import {verifyValue} from "../utils/hash.js";
 
 export const makeHandleLoginGet = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
@@ -96,7 +97,7 @@ export const makeHandleLoginPost = <StateT, ContextT extends IRouterParamContext
             return;
         }
 
-        const verify = user.password === password
+        const verify = await verifyValue(password, user.password)
 
         if (!verify) {
             ctx.inertia.render('login', {error: 'password is incorrect', email})

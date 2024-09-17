@@ -18,6 +18,9 @@ export const makeHandleConsentGet = <StateT, ContextT extends IRouterParamContex
         queries: {
             clients: {
                 findClientById
+            },
+            userConsents: {
+                findConsentByUserIdAndClientId,
             }
         }
     } = options
@@ -44,6 +47,11 @@ export const makeHandleConsentGet = <StateT, ContextT extends IRouterParamContex
             return;
         }
 
+        if (!authContext.userId) {
+            ctx.redirect('/auth/bad')
+            return;
+        }
+
         const client = await findClientById(authContext.clientId)
 
         if (!client) {
@@ -52,8 +60,16 @@ export const makeHandleConsentGet = <StateT, ContextT extends IRouterParamContex
         }
 
         if (client.consentRequired) {
-            ctx.inertia.render('consent')
-            return
+
+            const consent = await findConsentByUserIdAndClientId(
+                authContext.userId,
+                authContext.clientId
+            )
+
+            if (!consent) {
+                ctx.inertia.render('consent')
+                return
+            }
         }
 
         if (!authContext.responseMode) {
@@ -159,6 +175,11 @@ export const makeHandleConsentPost = <StateT, ContextT>(options: {
         handlers: {
             getSession
         },
+        queries: {
+            userConsents: {
+                insertUserConsent
+            }
+        }
     } = options
 
 
@@ -182,7 +203,24 @@ export const makeHandleConsentPost = <StateT, ContextT>(options: {
             return
         }
 
+        if (!authContext.clientId) {
+            ctx.redirect('/auth/bad')
+            return;
+        }
+
+        if (!authContext.userId) {
+            ctx.redirect('/auth/bad')
+            return;
+        }
+
         try {
+
+            await insertUserConsent({
+                id: generateStandardId(),
+                userId: authContext.userId,
+                clientId: authContext.clientId
+            })
+
             const code = await createAuthCode(session.data, options.queries)
 
             if (!code) {

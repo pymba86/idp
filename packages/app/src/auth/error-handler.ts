@@ -24,7 +24,7 @@ export default function errorHandler<StateT, ContextT, BodyT>(): Middleware<
             }
 
             if (error instanceof ServerError) {
-                logger.error(error);
+                logger.error(err);
             }
         }
     }
