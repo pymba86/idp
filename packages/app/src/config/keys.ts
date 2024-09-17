@@ -18,7 +18,7 @@ export const loadKeysFromBaseConfig = async (configs: BaseConfigType) => {
         privateKeys.map(async (key) => exportJWK(key)))
 
     const publicJwks = await Promise.all(
-        privateKeys.map(async (key) => exportJWK(key)));
+        publicKeys.map(async (key) => exportJWK(key)));
 
     const localJWKSet = createLocalJWKSet({keys: publicJwks})
 

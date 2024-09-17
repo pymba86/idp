@@ -14,6 +14,8 @@ interface JWTPayload {
     [K: string]: unknown;
 }
 
+export type JWT = ReturnType<typeof createJwtLibrary>
+
 export const createJwtLibrary = (keys: Keys) => {
 
     const [jwk] = keys.privateJwks
@@ -26,7 +28,7 @@ export const createJwtLibrary = (keys: Keys) => {
         throw new Error('missing or invalid JWK "kid" (Key ID) parameter');
     }
 
-    const sign: (payload: JWTPayload) => Promise<string> = async (payload) => {
+    const sign: <T extends JWTPayload = JWTPayload>(payload: T) => Promise<string> = async (payload) => {
         return new CompactSign(Buffer.from(JSON.stringify(payload)))
             .setProtectedHeader({
                 kid: jwk.kid, typ: 'JWT', alg: 'ES384'

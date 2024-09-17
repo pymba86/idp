@@ -28,7 +28,6 @@ export async function startServer(options: ServerOptions) {
 
     app.use(koaErrorHandler());
 
-
     const handlers = createHandlers()
 
     const libraries = createLibraries({
@@ -36,7 +35,7 @@ export async function startServer(options: ServerOptions) {
         keys
     })
 
-    app.use(mount('/eta', initApis({handlers})))
+    app.use(mount('/', initApis({handlers, keys})))
 
     app.use(mount('/auth', initAuthApis({
         queries,

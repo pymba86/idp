@@ -134,8 +134,6 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
                 throw new InvalidRequest("user session not found");
             }
 
-            // bumpUserSession
-
             session.data.authContext = {
                 ...req,
                 authCompleted: true,

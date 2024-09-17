@@ -24,7 +24,7 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             }
         },
         libraries: {
-            jwt
+            token
         },
         clientAuthentication
     } = options
@@ -43,11 +43,13 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
 
     const epoch = () => Math.floor(Date.now() / 1000);
 
-    const toEpochSeconds = (date: Date | number): number  => {
-        if (date instanceof Date) {
-            return Math.floor(date.getTime() / 1000);
-        }
-        return Math.floor(date / 1000);
+
+    interface AuthorizationCodeResponse {
+        tokenType: string;
+        accessToken: string;
+        scope: string;
+        idToken?: string;
+        refreshToken?: string;
     }
 
     const handleAuthorizationCodeGrant = async (
@@ -84,18 +86,26 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             throw new InvalidRequest('the request includes an invalid value for parameter "redirect_uri"');
         }
 
-        const accessToken = await jwt.sign({
-            sub: authorizationCode.userId,
-            sid: authorizationCode.userSessionId,
-            exp: toEpochSeconds(Date.now() + 10000),
+        const accessToken = await token.generateAccessToken(authorizationCode)
+
+        const refreshToken = await token.generateRefreshToken(authorizationCode)
+
+        const response: AuthorizationCodeResponse = {
+            tokenType: 'Bearer',
+            accessToken,
+            refreshToken,
             scope: authorizationCode.scope
-        })
-
-       await deleteAuthorizationCode(request.code);
-
-        ctx.body = {
-            accessToken
         }
+
+        const scopes = authorizationCode.scope.split(' ');
+
+        if (scopes.includes('openid')) {
+            response.idToken = await token.generateIdToken(authorizationCode)
+        }
+
+        await deleteAuthorizationCode(authorizationCode.id);
+
+        ctx.body = response
     };
 
     const handleUnsupportedGrantType = async (req: TokenRequest) => {
