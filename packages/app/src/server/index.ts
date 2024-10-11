@@ -28,7 +28,7 @@ export async function startServer(options: ServerOptions) {
 
     app.use(koaErrorHandler());
 
-    const handlers = createHandlers()
+    const handlers = createHandlers(queries.pool)
 
     const libraries = createLibraries({
         queries,

@@ -1,156 +1,150 @@
 import {Context} from "koa";
 import {nanoid} from "nanoid";
+import {SessionStoreData} from "@astoniq/idp-schemas";
+import {Nullable} from "../types/index.js";
 
-export type SessionRecord = Record<string, any>;
 
-export type SessionData<T = SessionRecord> = {
-    cookie: Cookie;
-    data: Partial<T>
-}
+export type SessionData = {
+    data: Partial<SessionStoreData>;
+    expiresAt: number;
+    remember: boolean;
+} & Cookie
 
-export type Session<T extends SessionRecord = SessionRecord> = {
+export type Session = {
     id: string;
     isNew: boolean;
-    isTouched: boolean;
     isDestroyed: boolean;
     commit(): Promise<void>;
-    touch(): void;
+    touch(remember: boolean): void;
     destroy(): Promise<void>;
     regenerate(): Promise<void>;
-} & SessionData<T>
+} & SessionData
 
 export type Cookie = {
     httpOnly: boolean;
     path: string;
     domain?: string | undefined;
     secure: boolean;
-    sameSite?: boolean | 'lax' | 'strict' | 'none';
-} & (
-    | {
-    maxAge?: undefined;
-    expires?: undefined
+    sameSite: 'lax' | 'strict' | 'none';
 }
-    | {
-    maxAge: number;
-    expires: Date;
-}
-    );
 
-export interface SessionStore<T extends SessionRecord> {
-    get(id: string): Promise<SessionData<T>>;
+export interface SessionStore {
+    get(id: string): Promise<Nullable<SessionData>>;
 
-    set(id: string, data: SessionData<T>): Promise<void>;
+    set(id: string, session: Session): Promise<void>;
 
     destroy(id: string): Promise<void>;
-
-    touch(id: string, data: SessionData<T>): Promise<void>;
 }
 
-export interface Options<T extends SessionRecord> {
+export interface Options {
     name: string;
-    store: SessionStore<T>;
+    store: SessionStore;
     genId?: () => string;
-    touchAfter?: number;
-    cookie: Partial<Cookie>;
+    cookie: Cookie;
+    maxAge: number;
+    rememberAge: number;
 }
 
 export function commitSession(
     ctx: Context,
     name: string,
-    {cookie, id}: Pick<Session, 'cookie' | 'id'>) {
+    session: Session) {
     if (!ctx.headerSent) {
-        ctx.cookies.set(name, id, cookie)
+        ctx.cookies.set(name, session.id, {
+            httpOnly: session.httpOnly,
+            path: session.path,
+            expires: session.remember ? new Date(session.expiresAt): undefined,
+            domain: session.domain,
+            secure: session.secure,
+            sameSite: session.sameSite
+        })
     }
 }
 
-export function nextSession<T extends SessionRecord>(options: Options<T>) {
+export function nextSession(options: Options) {
 
     const {
         name,
         store,
         cookie,
         genId = nanoid,
-        touchAfter = 0
+        maxAge,
+        rememberAge,
     } = options
 
-    return async (ctx: Context): Promise<Session<T>> => {
+    return async (ctx: Context): Promise<Session> => {
 
         const createSession = (
             session: {
                 id: string,
                 isNew: boolean,
                 isDestroyed: boolean,
-                isTouched: boolean,
-            } & SessionData<T>): Session<T> => {
+            } & SessionData): Session => {
 
             return {
                 ...session,
                 async commit() {
+
+                    const now = Date.now();
+
+                    if (this.remember) {
+                        this.expiresAt = now + rememberAge * 1000;
+                    } else {
+                        this.expiresAt = now + maxAge * 1000;
+                    }
+
                     await store.set(this.id, this);
+
                     commitSession(ctx, name, this);
                 },
-                touch() {
-                    this.isTouched = true;
-                    const now = Date.now()
-                    this.cookie.expires = new Date(now + this.cookie.maxAge! * 1000);
+                touch(remember) {
+                    this.remember = remember
                 },
                 async regenerate() {
                     await store.destroy(this.id)
                     this.id = genId()
                 },
                 async destroy() {
+                    this.expiresAt = 0;
                     this.isDestroyed = true;
-                    this.cookie.expires = new Date(1);
-                    await store.destroy(this.id)
+                    await store.destroy(this.id);
                     commitSession(ctx, name, this);
                 }
             }
         }
 
-        const sessionId = ctx.cookies.get(name);
+        const id = ctx.cookies.get(name);
 
-        if (sessionId) {
+        if (id) {
 
-            const storeSession = await store.get(sessionId);
+            const session = await store.get(id);
 
-            if (storeSession) {
+            if (session) {
 
-                const session = createSession({
-                    ...storeSession,
-                    id: sessionId,
+                return createSession({
+                    ...session,
+                    id,
                     isDestroyed: false,
                     isNew: false,
-                    isTouched: false,
                 })
-
-                if (touchAfter >= 0 && session.cookie.expires) {
-
-                    const lastTouchedTime =
-                        session.cookie.expires.getTime()
-                        - session.cookie.maxAge * 1000;
-
-                    if (Date.now() - lastTouchedTime >= touchAfter * 1000) {
-                        session.touch();
-                    }
-                }
-
-                return session
             }
         }
+
+        const now = Date.now();
+        const expiresAt = now + maxAge * 1000;
 
         return createSession({
             id: genId(),
             isNew: true,
             isDestroyed: false,
-            isTouched: false,
-            cookie: {
-                path: cookie.path || "/",
-                httpOnly: cookie.httpOnly ?? true,
-                domain: cookie.domain || undefined,
-                sameSite: cookie.sameSite,
-                secure: cookie.secure || false,
-            },
-            data: {}
+            path: cookie.path,
+            httpOnly: cookie.httpOnly,
+            domain: cookie.domain,
+            sameSite: cookie.sameSite,
+            secure: cookie.secure,
+            data: {},
+            expiresAt,
+            remember: false,
         })
     }
 }

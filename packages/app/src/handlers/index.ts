@@ -1,59 +1,26 @@
-import {nextSession, SessionData, SessionRecord, SessionStore} from "./session.js";
+import {nextSession} from "./session.js";
 import {nanoid} from "nanoid";
-import {AuthContext} from "../types/auth.js";
 import {createRender} from "./render.js";
+import {createSessionStore} from "./data.js";
+import {CommonQueryMethods} from "slonik";
 
-export type SessionStoreData = {
-    userSessionId: string,
-    authContext: AuthContext,
-}
-
-export const createStore = <T extends SessionRecord>(): SessionStore<T> => {
-    const store = new Map()
-
-    const get = async (sid: string) => {
-        const sess = store.get(sid);
-        if (sess) {
-            return JSON.parse(sess, (_key, value) => {
-                return value;
-            });
-        }
-        return null;
-    }
-
-    async function set(sid: string, sess: SessionData<T>) {
-        store.set(sid, JSON.stringify(sess));
-    }
-
-    async function destroy(sid: string) {
-        store.delete(sid);
-    }
-
-    async function touch(sid: string, sess: SessionData) {
-        store.set(sid, JSON.stringify(sess));
-    }
-
-    return {
-        get,
-        set,
-        destroy,
-        touch
-    }
-}
 
 export type Handlers = ReturnType<typeof createHandlers>
 
-export function createHandlers() {
+export function createHandlers(pool: CommonQueryMethods) {
 
     const getSession = nextSession({
         name: 'sid',
-        store: createStore<SessionStoreData>(),
+        store: createSessionStore(pool),
         genId: () => nanoid(),
         cookie: {
+            path: '/',
             httpOnly: true,
             sameSite: 'lax',
             secure: false,
-        }
+        },
+        maxAge: 60 * 60 * 24, // 1 day
+        rememberAge: 60 * 60 * 24 * 30 // 30 day
     })
 
     const render = createRender()

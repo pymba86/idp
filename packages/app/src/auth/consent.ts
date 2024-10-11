@@ -1,10 +1,10 @@
 import {Queries} from "../queries/index.js";
-import {Handlers, SessionStoreData} from "../handlers/index.js";
+import {Handlers} from "../handlers/index.js";
 import {Context, Middleware} from "koa";
 import {IRouterParamContext} from "koa-router";
 import {WithInertiaContext} from "../middlewares/koa-inertia.js";
 import {generateStandardId} from "@astoniq/idp-shared";
-import {Code} from "@astoniq/idp-schemas";
+import {Code, SessionStoreData} from "@astoniq/idp-schemas";
 
 export const makeHandleConsentGet = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
