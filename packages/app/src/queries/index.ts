@@ -4,8 +4,9 @@ import {createUserSessionQueries} from "./user-session.js";
 import {createUserQueries} from "./user.js";
 import {createCodeQueries} from "./code.js";
 import {createRefreshTokenQueries} from "./refresh-token.js";
-import {createResourceQueries} from "./resource.js";
+import {createScopeQueries} from "./scope.js";
 import {createUserConsentQueries} from "./user-consent.js";
+import {createClientScopeQueries} from "./client-scope.js";
 
 export type Queries = ReturnType<typeof createQueries>
 
@@ -16,17 +17,19 @@ export const createQueries = (pool: CommonQueryMethods) => {
     const users = createUserQueries(pool)
     const codes = createCodeQueries(pool)
     const refreshTokens = createRefreshTokenQueries(pool)
-    const resources = createResourceQueries(pool)
+    const scopes = createScopeQueries(pool)
     const userConsents = createUserConsentQueries(pool)
+    const clientScopes = createClientScopeQueries(pool)
 
     return {
         pool,
+        clientScopes,
         clients,
         codes,
         users,
         userSessions,
         refreshTokens,
-        resources,
+        scopes,
         userConsents
     }
 }

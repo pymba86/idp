@@ -1,4 +1,2 @@
 
-export const adminClientName = 'admin'
-
-export const serverResourceName = 'auth'
+export const consoleClientName = 'console'

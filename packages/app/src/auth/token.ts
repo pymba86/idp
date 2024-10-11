@@ -97,12 +97,6 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             scope: authorizationCode.scope
         }
 
-        const scopes = authorizationCode.scope.split(' ');
-
-        if (scopes.includes('openid')) {
-            response.idToken = await token.generateIdToken(authorizationCode)
-        }
-
         await deleteAuthorizationCode(authorizationCode.id);
 
         ctx.body = response

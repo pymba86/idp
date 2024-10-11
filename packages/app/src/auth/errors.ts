@@ -24,8 +24,8 @@ export class AccessDenied extends OAuth2ServerError {
 }
 
 export class InvalidScope extends OAuth2ServerError {
-    constructor(scope: string) {
-        super(400, 'invalid_scope', `the requested scope is invalid, unknown, or malformed "${scope}"`);
+    constructor(errorDescription: string) {
+        super(400, 'invalid_scope', errorDescription);
     }
 }
 

@@ -59,7 +59,7 @@ export const makeHandleConsentGet = <StateT, ContextT extends IRouterParamContex
             return;
         }
 
-        if (client.consentRequired) {
+        if (client.consent) {
 
             const consent = await findConsentByUserIdAndClientId(
                 authContext.userId,

@@ -3,9 +3,7 @@ import {Keys} from "../config/index.js";
 import {CompactSign} from "jose";
 
 interface JWTPayload {
-    iss?: string;
     sub?: string;
-    aud?: string | string[];
     jti?: string;
     nbf?: number;
     exp?: number;

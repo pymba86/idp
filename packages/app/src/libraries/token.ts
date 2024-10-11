@@ -28,7 +28,6 @@ export const createTokenLibrary = (options: {
     const generateAccessToken = async (code: Code) => {
         return jwt.sign({
             sub: code.userId,
-            aud: 'idp',
             sid: code.userSessionId,
             exp: Date.now() + 100000000,
             scope: code.scope
@@ -108,18 +107,9 @@ export const createTokenLibrary = (options: {
         return jwt.sign(claims)
     }
 
-    const generateIdToken = async (code: Code) => {
-        return jwt.sign({
-            sub: code.userId,
-            sid: code.userSessionId,
-            exp: toEpochSeconds(Date.now() + 10000)
-        })
-    }
-
     return {
         generateAccessToken,
         generateRefreshToken,
-        toEpochSeconds,
-        generateIdToken
+        toEpochSeconds
     }
 }

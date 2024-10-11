@@ -6,7 +6,7 @@ export const clientGuard = z.object({
     name: z.string().min(1).max(256),
     secret: z.string().min(1).max(64),
     description: z.string().min(1).max(256),
-    consentRequired: z.boolean(),
+    consent: z.boolean(),
     metadata: clientMetadataGuard
 })
 

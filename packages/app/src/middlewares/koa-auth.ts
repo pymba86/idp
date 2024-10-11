@@ -6,6 +6,7 @@ import {jwtVerify} from 'jose';
 import {Keys} from "../config/index.js";
 import {z} from 'zod'
 import {IRouterParamContext} from "koa-router";
+import {PredefinedScope} from "@astoniq/idp-shared";
 
 const bearerTokenIdentifier = 'Bearer';
 
@@ -75,6 +76,11 @@ export default function koaAuth<StateT, ContextT extends IRouterParamContext, Bo
     return async (ctx, next) => {
 
         const {sub, scopes} = await verifyBearerTokenFromRequest(keys, ctx.request);
+
+        assertThat(
+            scopes.includes(PredefinedScope.Console),
+            new RequestError({code: 'forbidden', status: 403})
+        )
 
         ctx.auth = {
             id: sub,

@@ -21,6 +21,9 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
             },
             userSessions: {
                 findUserSessionById
+            },
+            clientScopes: {
+                findScopesByClientId
             }
         },
         handlers: {
@@ -73,12 +76,14 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
         }
     }
 
-    const supportedScopes = [
-        'email'
-    ]
+    const validateScopes = async (client: Client, scope: string) => {
 
-    const validateScope = (scope: string) => {
         const scopes = scope.split(' ');
+
+        const clientScopes = await findScopesByClientId(client.id);
+
+        const supportedScopes = clientScopes.map(
+            scope => scope.name)
 
         if (scopes.some((scope) => !supportedScopes.includes(scope))) {
             throw new InvalidScope(scope);
@@ -113,7 +118,7 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
         }
 
         if (req.scope) {
-            validateScope(req.scope);
+            await validateScopes(client, req.scope);
         } else {
             throw new InvalidRequest("The 'scope' parameter is missing.");
         }
@@ -142,15 +147,14 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
 
             await session.commit()
 
-            ctx.redirect(`/auth/consent`);
-            return;
+            return ctx.redirect(`/auth/consent`);
         }
 
         session.data.authContext = req
 
         await session.commit()
 
-        ctx.redirect(`/auth/login`)
+        return ctx.redirect(`/auth/login`)
     };
 
     return async (ctx) => {
