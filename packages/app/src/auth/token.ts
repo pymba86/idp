@@ -21,6 +21,9 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             codes: {
                 findAuthorizationCode,
                 deleteAuthorizationCode
+            },
+            refreshTokens: {
+                findRefreshTokenById,
             }
         },
         libraries: {
@@ -46,10 +49,11 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
 
     interface AuthorizationCodeResponse {
         tokenType: string;
+        accessExpiresAt: number;
         accessToken: string;
         scope: string;
-        idToken?: string;
-        refreshToken?: string;
+        refreshExpiresAt: number;
+        refreshToken: string;
     }
 
     const handleAuthorizationCodeGrant = async (
@@ -86,12 +90,20 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             throw new InvalidRequest('the request includes an invalid value for parameter "redirect_uri"');
         }
 
-        const accessToken = await token.generateAccessToken(authorizationCode)
+        const now = Date.now()
 
-        const refreshToken = await token.generateRefreshToken(authorizationCode)
+        const accessExpiresAt = token.getAccessTokenExpiration(now)
+
+        const accessToken = await token.generateAccessToken(authorizationCode, accessExpiresAt)
+
+        const refreshExpiresAt = token.getRefreshTokenExpiration(now)
+
+        const refreshToken = await token.generateRefreshToken(authorizationCode, refreshExpiresAt)
 
         const response: AuthorizationCodeResponse = {
             tokenType: 'Bearer',
+            accessExpiresAt,
+            refreshExpiresAt,
             accessToken,
             refreshToken,
             scope: authorizationCode.scope
@@ -101,6 +113,32 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
 
         ctx.body = response
     };
+
+    const handleRefreshTokenGrant = async (
+        _ctx: Context,
+        request: TokenRequest
+    ) => {
+        const client = await clientAuthentication(request);
+
+        if (!request.refreshToken) {
+            throw new InvalidRequest('the request is missing a required parameter "refresh_token"');
+        }
+
+        const refreshToken = await findRefreshTokenById(request.refreshToken, client.id)
+
+        if (!refreshToken) {
+            throw new InvalidGrant('the provided refresh token is invalid, expired or revoked');
+        }
+
+        const now = Date.now()
+
+        if (refreshToken.expiresAt < now) {
+            throw new InvalidGrant('the provided refresh token is invalid, expired or revoked');
+        }
+
+
+
+    }
 
     const handleUnsupportedGrantType = async (req: TokenRequest) => {
 
@@ -121,6 +159,9 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
         switch (request.grantType) {
             case 'authorization_code':
                 await handleAuthorizationCodeGrant(ctx, request);
+                break
+            case 'refresh_token':
+                await handleRefreshTokenGrant(ctx, request);
                 break
             default:
                 await handleUnsupportedGrantType(request);

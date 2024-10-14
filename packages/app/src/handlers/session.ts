@@ -1,13 +1,12 @@
 import {Context} from "koa";
-import {nanoid} from "nanoid";
 import {SessionStoreData} from "@astoniq/idp-schemas";
 import {Nullable} from "../types/index.js";
-
+import {generateStandardId} from "@astoniq/idp-shared";
 
 export type SessionData = {
     data: Partial<SessionStoreData>;
     expiresAt: number;
-    remember: boolean;
+    maxAge: number;
 } & Cookie
 
 export type Session = {
@@ -15,7 +14,6 @@ export type Session = {
     isNew: boolean;
     isDestroyed: boolean;
     commit(): Promise<void>;
-    touch(remember: boolean): void;
     destroy(): Promise<void>;
     regenerate(): Promise<void>;
 } & SessionData
@@ -42,7 +40,6 @@ export interface Options {
     genId?: () => string;
     cookie: Cookie;
     maxAge: number;
-    rememberAge: number;
 }
 
 export function commitSession(
@@ -53,7 +50,7 @@ export function commitSession(
         ctx.cookies.set(name, session.id, {
             httpOnly: session.httpOnly,
             path: session.path,
-            expires: session.remember ? new Date(session.expiresAt): undefined,
+            expires: new Date(session.expiresAt),
             domain: session.domain,
             secure: session.secure,
             sameSite: session.sameSite
@@ -67,9 +64,8 @@ export function nextSession(options: Options) {
         name,
         store,
         cookie,
-        genId = nanoid,
+        genId = generateStandardId,
         maxAge,
-        rememberAge,
     } = options
 
     return async (ctx: Context): Promise<Session> => {
@@ -87,18 +83,11 @@ export function nextSession(options: Options) {
 
                     const now = Date.now();
 
-                    if (this.remember) {
-                        this.expiresAt = now + rememberAge * 1000;
-                    } else {
-                        this.expiresAt = now + maxAge * 1000;
-                    }
+                    this.expiresAt = now + this.maxAge * 1000;
 
                     await store.set(this.id, this);
 
                     commitSession(ctx, name, this);
-                },
-                touch(remember) {
-                    this.remember = remember
                 },
                 async regenerate() {
                     await store.destroy(this.id)
@@ -144,7 +133,7 @@ export function nextSession(options: Options) {
             secure: cookie.secure,
             data: {},
             expiresAt,
-            remember: false,
+            maxAge
         })
     }
 }

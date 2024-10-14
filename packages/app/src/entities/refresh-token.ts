@@ -10,8 +10,9 @@ export const refreshTokenEntity: Entity<
     fields: {
         id: 'id',
         userSessionId: 'user_session_id',
+        clientId: 'client_id',
+        userId: 'client_id',
         scope: 'scope',
-        type: 'type',
         expiresAt: 'expires_at'
     },
     guard: refreshTokenGuard,

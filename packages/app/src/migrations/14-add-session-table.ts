@@ -14,7 +14,7 @@ const migration: MigrationScript = {
                 same_site  text,
                 data       jsonb,
                 expires_at timestamp without time zone,
-                remember   boolean,
+                max_age    integer,
                 primary key (id)
             );
         `)

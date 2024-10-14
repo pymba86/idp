@@ -11,13 +11,13 @@ export const sessionEntity: Entity<
     tableSingular: 'session',
     fields: {
         id: 'id',
-        remember: 'remember',
         expiresAt: 'expires_at',
         sameSite: 'same_site',
         secure: 'secure',
         domain: 'domain',
         path: 'path',
         data: 'data',
+        maxAge: 'max_age',
         httpOnly: 'http_only'
     },
     guard: sessionGuard,

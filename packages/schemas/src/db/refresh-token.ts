@@ -2,9 +2,10 @@ import {z} from "zod";
 
 export const refreshTokenGuard = z.object({
     id: z.string().min(1).max(21),
+    clientId: z.string().min(1).max(21),
+    userId: z.string().min(1).max(21),
     userSessionId: z.string().optional(),
     scope: z.string(),
-    type: z.string(),
     expiresAt: z.number()
 })
 

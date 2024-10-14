@@ -10,7 +10,7 @@ export const sessionGuard = z.object({
     sameSite: z.enum(['lax', 'strict', 'none']),
     data: sessionStoreDataGuard.partial(),
     expiresAt: z.number(),
-    remember: z.boolean(),
+    maxAge: z.number(),
 })
 
 export type Session = z.infer<typeof sessionGuard>;

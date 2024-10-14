@@ -19,8 +19,7 @@ export function createHandlers(pool: CommonQueryMethods) {
             sameSite: 'lax',
             secure: false,
         },
-        maxAge: 60 * 60 * 24, // 1 day
-        rememberAge: 60 * 60 * 24 * 30 // 30 day
+        maxAge: 60 * 60 * 24 * 30, // 30 day
     })
 
     const render = createRender()

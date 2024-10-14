@@ -25,7 +25,7 @@ export const createSessionStore = (pool: CommonQueryMethods): SessionStore => {
             }  else {
                 await updateSession({
                     set: session,
-                    jsonbMode: 'merge',
+                    jsonbMode: 'replace',
                     where: {
                         id
                     }

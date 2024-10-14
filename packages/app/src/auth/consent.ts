@@ -130,11 +130,8 @@ const createAuthCode = async (sessionData: Partial<SessionStoreData>, queries: Q
         throw new Error('')
     }
 
-    const getExpiration = (ttl: number) => {
-        const expiration = new Date();
-        expiration.setUTCSeconds(expiration.getUTCSeconds() + ttl);
-        return expiration;
-    }
+    const now = Date.now();
+    const expiresAt = now + 60 * 5 * 1000; // 5 min
 
     return queries.codes.insertAuthorizationCode({
         id: id,
@@ -142,7 +139,7 @@ const createAuthCode = async (sessionData: Partial<SessionStoreData>, queries: Q
         redirectUri: authContext.redirectUri,
         scope: authContext.scope,
         clientId: authContext.clientId,
-        expiresAt: getExpiration(1000).valueOf(),
+        expiresAt: expiresAt,
         userSessionId: userSessionId
     })
 }
