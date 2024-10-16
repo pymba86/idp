@@ -2,16 +2,18 @@ import {Context, Middleware} from "koa";
 import {ParsedUrlQuery} from "querystring";
 import {Queries} from "../queries/index.js";
 import {Client, ClientMetadata} from "@astoniq/idp-schemas";
-import {InvalidRequest, InvalidScope, OAuth2ServerError, ServerError} from "./errors.js";
+import {InvalidRequest, OAuth2ServerError, ServerError} from "./errors.js";
 import {Handlers} from "../handlers/index.js";
 import {WithInertiaContext} from "../middlewares/koa-inertia.js";
 import {IRouterParamContext} from "koa-router";
 import {parseParam} from "./query.js";
 import {AuthorizationRequest} from "./types.js";
+import {Libraries} from "../libraries/index.js";
 
 export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
-    handlers: Handlers
+    handlers: Handlers,
+    libraries: Libraries
 }): Middleware<StateT, WithInertiaContext<ContextT>> => {
 
     const {
@@ -22,12 +24,14 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
             userSessions: {
                 findUserSessionById
             },
-            clientScopes: {
-                findScopesByClientId
-            }
         },
         handlers: {
             getSession
+        },
+        libraries: {
+            client: {
+                validateClientScopes
+            }
         }
     } = options
 
@@ -76,19 +80,6 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
         }
     }
 
-    const validateScopes = async (client: Client, scope: string) => {
-
-        const scopes = scope.split(' ');
-
-        const clientScopes = await findScopesByClientId(client.id);
-
-        const supportedScopes = clientScopes.map(
-            scope => scope.name)
-
-        if (scopes.some((scope) => !supportedScopes.includes(scope))) {
-            throw new InvalidScope(scope);
-        }
-    };
 
     const responseModes = [
         'query',
@@ -118,7 +109,7 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
         }
 
         if (req.scope) {
-            await validateScopes(client, req.scope);
+            await validateClientScopes(client, req.scope);
         } else {
             throw new InvalidRequest("The 'scope' parameter is missing.");
         }

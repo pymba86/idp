@@ -36,7 +36,8 @@ const createRouters = (options: RouterOptions) => {
 
     router.get('/', makeHandleAuthorization({
         queries,
-        handlers
+        handlers,
+        libraries
     }))
 
     router.get('/login', makeHandleLoginGet({

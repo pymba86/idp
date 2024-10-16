@@ -4,7 +4,7 @@ export const refreshTokenGuard = z.object({
     id: z.string().min(1).max(21),
     clientId: z.string().min(1).max(21),
     userId: z.string().min(1).max(21),
-    userSessionId: z.string().optional(),
+    userSessionId: z.string(),
     scope: z.string(),
     expiresAt: z.number()
 })

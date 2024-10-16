@@ -37,6 +37,10 @@ export const makeHandleClientAuthentication = (options: {
             throw new InvalidClient('Client does not exist.')
         }
 
+        if (request.clientSecret !== client.secret) {
+            throw new InvalidClient('the client authentication failed due to invalid credentials')
+        }
+
         return client
     }
 }

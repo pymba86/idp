@@ -9,7 +9,7 @@ const migration: MigrationScript = {
                 id              varchar(21) not null,
                 client_id       varchar(21) not null,
                 user_id         varchar(21) not null,
-                user_session_id varchar(21) null,
+                user_session_id varchar(21) not null,
                 scope           text        not null,
                 expires_at      timestamp without time zone,
                 primary key (id)

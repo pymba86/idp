@@ -24,10 +24,20 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             },
             refreshTokens: {
                 findRefreshTokenById,
+                deleteRefreshTokenById
             }
         },
         libraries: {
-            token
+            token: {
+                generateAccessToken,
+                getRefreshTokenExpiration,
+                generateClientAccessToken,
+                getAccessTokenExpiration,
+                generateRefreshToken
+            },
+            client: {
+                validateClientScopes
+            }
         },
         clientAuthentication
     } = options
@@ -43,9 +53,6 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             scope: parseParam(body.scope)
         }
     }
-
-    const epoch = () => Math.floor(Date.now() / 1000);
-
 
     interface AuthorizationCodeResponse {
         tokenType: string;
@@ -80,7 +87,9 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             throw new InvalidGrant('The client_id provided does not match the client_id from code.');
         }
 
-        if (authorizationCode.expiresAt < epoch()) {
+        const now = Date.now()
+
+        if (authorizationCode.expiresAt < now) {
             await deleteAuthorizationCode(request.code);
 
             throw new InvalidGrant('the provided authorization code is invalid, expired or revoked');
@@ -90,15 +99,13 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             throw new InvalidRequest('the request includes an invalid value for parameter "redirect_uri"');
         }
 
-        const now = Date.now()
+        const accessExpiresAt = getAccessTokenExpiration(now)
 
-        const accessExpiresAt = token.getAccessTokenExpiration(now)
+        const accessToken = await generateAccessToken(authorizationCode, accessExpiresAt)
 
-        const accessToken = await token.generateAccessToken(authorizationCode, accessExpiresAt)
+        const refreshExpiresAt = getRefreshTokenExpiration(now)
 
-        const refreshExpiresAt = token.getRefreshTokenExpiration(now)
-
-        const refreshToken = await token.generateRefreshToken(authorizationCode, refreshExpiresAt)
+        const refreshToken = await generateRefreshToken(authorizationCode, refreshExpiresAt)
 
         const response: AuthorizationCodeResponse = {
             tokenType: 'Bearer',
@@ -114,8 +121,17 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
         ctx.body = response
     };
 
+    interface RefreshTokenResponse {
+        tokenType: string;
+        accessExpiresAt: number;
+        accessToken: string;
+        scope: string;
+        refreshExpiresAt: number;
+        refreshToken: string;
+    }
+
     const handleRefreshTokenGrant = async (
-        _ctx: Context,
+        ctx: Context,
         request: TokenRequest
     ) => {
         const client = await clientAuthentication(request);
@@ -124,20 +140,73 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             throw new InvalidRequest('the request is missing a required parameter "refresh_token"');
         }
 
-        const refreshToken = await findRefreshTokenById(request.refreshToken, client.id)
+        const currentRefreshToken = await findRefreshTokenById(request.refreshToken, client.id)
 
-        if (!refreshToken) {
+        if (!currentRefreshToken) {
             throw new InvalidGrant('the provided refresh token is invalid, expired or revoked');
         }
 
         const now = Date.now()
 
-        if (refreshToken.expiresAt < now) {
+        if (currentRefreshToken.expiresAt < now) {
             throw new InvalidGrant('the provided refresh token is invalid, expired or revoked');
         }
 
+        const accessExpiresAt = getAccessTokenExpiration(now)
 
+        const accessToken = await generateAccessToken(currentRefreshToken, accessExpiresAt)
 
+        const refreshExpiresAt = getRefreshTokenExpiration(now)
+
+        const refreshToken = await generateRefreshToken(currentRefreshToken, refreshExpiresAt)
+
+        const response: RefreshTokenResponse = {
+            tokenType: 'Bearer',
+            accessExpiresAt,
+            refreshExpiresAt,
+            accessToken,
+            refreshToken,
+            scope: currentRefreshToken.scope
+        }
+
+        await deleteRefreshTokenById(currentRefreshToken.id, client.id)
+
+        ctx.body = response
+    }
+
+    interface ClientCredentialsResponse {
+        tokenType: string;
+        accessExpiresAt: number;
+        accessToken: string;
+        scope: string;
+    }
+
+    const handleClientCredentialsGrant = async (
+        ctx: Context,
+        request: TokenRequest
+    ) => {
+        const client = await clientAuthentication(request);
+
+        if (request.scope) {
+            await validateClientScopes(client, request.scope);
+        } else {
+            throw new InvalidRequest("The 'scope' parameter is missing.");
+        }
+
+        const now = Date.now()
+
+        const accessExpiresAt = getAccessTokenExpiration(now)
+
+        const accessToken = await generateClientAccessToken(client, request.scope, accessExpiresAt)
+
+        const response: ClientCredentialsResponse = {
+            tokenType: 'Bearer',
+            accessExpiresAt,
+            accessToken,
+            scope: request.scope
+        }
+
+        ctx.body = response
     }
 
     const handleUnsupportedGrantType = async (req: TokenRequest) => {
@@ -162,6 +231,9 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
                 break
             case 'refresh_token':
                 await handleRefreshTokenGrant(ctx, request);
+                break
+            case 'client_credentials':
+                await handleClientCredentialsGrant(ctx, request);
                 break
             default:
                 await handleUnsupportedGrantType(request);

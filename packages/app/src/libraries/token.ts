@@ -1,6 +1,7 @@
 import {JWT} from "./jwt.js";
 import {generateStandardId} from "@astoniq/idp-shared";
 import {Queries} from "../queries/index.js";
+import {Client} from "@astoniq/idp-schemas";
 
 export interface TokenInfo {
     scope: string,
@@ -29,6 +30,14 @@ export const createTokenLibrary = (options: {
             sid: info.userSessionId,
             exp: expiresAt,
             scope: info.scope
+        })
+    }
+
+    const generateClientAccessToken = async (client: Client, scope: string, expiresAt: number) => {
+        return jwt.sign({
+            sub: client.id,
+            exp: expiresAt,
+            scope: scope
         })
     }
 
@@ -65,6 +74,7 @@ export const createTokenLibrary = (options: {
 
     return {
         generateAccessToken,
+        generateClientAccessToken,
         getRefreshTokenExpiration,
         getAccessTokenExpiration,
         generateRefreshToken
