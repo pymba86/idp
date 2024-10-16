@@ -1,4 +1,3 @@
-
 export class OAuth2ServerError extends Error {
     constructor(readonly statusCode: number, readonly error: string, readonly errorDescription: string) {
         super(error);
@@ -24,8 +23,8 @@ export class AccessDenied extends OAuth2ServerError {
 }
 
 export class InvalidScope extends OAuth2ServerError {
-    constructor(errorDescription: string) {
-        super(400, 'invalid_scope', errorDescription);
+    constructor(scope: string) {
+        super(400, 'invalid_scope', `the requested scope is invalid, unknown, or malformed '${scope}'`);
     }
 }
 

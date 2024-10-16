@@ -11,7 +11,7 @@ export const refreshTokenEntity: Entity<
         id: 'id',
         userSessionId: 'user_session_id',
         clientId: 'client_id',
-        userId: 'client_id',
+        userId: 'user_id',
         scope: 'scope',
         expiresAt: 'expires_at'
     },
