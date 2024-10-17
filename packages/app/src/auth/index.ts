@@ -4,7 +4,7 @@ import Router from "koa-router";
 import {makeHandleAuthorization} from "./authorize.js";
 import {makeHandleLoginPost, makeHandleLoginGet} from "./login.js";
 import {makeHandleConsentGet, makeHandleConsentPost} from "./consent.js";
-import {makeHandleRegisterGet} from "./register.js";
+import {makeHandleRegisterGet, makeHandleRegisterPost} from "./register.js";
 import koaInertia from "../middlewares/koa-inertia.js";
 import koaBody from "koa-body";
 import {makeHandleClientAuthentication} from "./client.js";
@@ -46,6 +46,11 @@ const createRouters = (options: RouterOptions) => {
     }))
 
     router.get('/register', makeHandleRegisterGet({
+        queries,
+        handlers
+    }))
+
+    router.post('/register', makeHandleRegisterPost({
         queries,
         handlers
     }))

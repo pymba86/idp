@@ -12,7 +12,9 @@ export const refreshTokenEntity: Entity<
         userSessionId: 'user_session_id',
         clientId: 'client_id',
         userId: 'user_id',
+        accessTokenId: 'access_token_id',
         scope: 'scope',
+        accessExpiresAt: 'access_expires_at',
         expiresAt: 'expires_at'
     },
     guard: refreshTokenGuard,

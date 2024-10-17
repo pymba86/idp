@@ -24,8 +24,9 @@ export const createTokenLibrary = (options: {
         }
     } = options
 
-    const generateAccessToken = async (info: TokenInfo, expiresAt: number) => {
+    const generateAccessToken = async (info: TokenInfo, accessTokenId: string, expiresAt: number) => {
         return jwt.sign({
+            jti: accessTokenId,
             sub: info.userId,
             sid: info.userSessionId,
             exp: expiresAt,
@@ -33,8 +34,9 @@ export const createTokenLibrary = (options: {
         })
     }
 
-    const generateClientAccessToken = async (client: Client, scope: string, expiresAt: number) => {
+    const generateClientAccessToken = async (client: Client, accessTokenId: string, scope: string, expiresAt: number) => {
         return jwt.sign({
+            jti: accessTokenId,
             sub: client.id,
             exp: expiresAt,
             scope: scope
@@ -42,14 +44,19 @@ export const createTokenLibrary = (options: {
     }
 
     const getAccessTokenExpiration = (now: number) => {
-        return now +  60 * 15 * 1000 // 15 min
+        return now + 60 * 15 * 1000 // 15 min
     }
 
     const getRefreshTokenExpiration = (now: number) => {
         return now + 60 * 60 * 24 * 30 * 1000 // 30 days
     }
 
-    const generateRefreshToken = async (info: TokenInfo, expiresAt: number) => {
+    const generateRefreshToken = async (
+        info: TokenInfo,
+        accessTokenId: string,
+        accessExpiresAt: number,
+        expiresAt: number
+    ) => {
 
         const {
             scope,
@@ -64,6 +71,8 @@ export const createTokenLibrary = (options: {
             id,
             userId,
             clientId,
+            accessTokenId,
+            accessExpiresAt,
             expiresAt,
             userSessionId,
             scope,

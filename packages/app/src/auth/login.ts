@@ -32,7 +32,7 @@ export const makeHandleLoginGet = <StateT, ContextT extends IRouterParamContext>
             return;
         }
 
-        ctx.inertia.render('login')
+        ctx.inertia.render('Login')
     }
 }
 
@@ -71,36 +71,36 @@ export const makeHandleLoginPost = <StateT, ContextT extends IRouterParamContext
         } = ctx.request.body
 
         if (typeof email !== 'string') {
-            ctx.inertia.render('login', {error: 'email required'})
+            ctx.inertia.render('Login', {error: 'email required'})
             return;
         }
 
         if (email.length === 0) {
-            ctx.inertia.render('login', {error: 'email is not empty', email})
+            ctx.inertia.render('Login', {error: 'email is not empty', email})
             return;
         }
 
         if (typeof password !== 'string') {
-            ctx.inertia.render('login', {error: 'password required', email})
+            ctx.inertia.render('Login', {error: 'password required', email})
             return;
         }
 
         if (password.length === 0) {
-            ctx.inertia.render('login', {error: 'password is not empty', email})
+            ctx.inertia.render('Login', {error: 'password is not empty', email})
             return;
         }
 
         const user = await findUserByEmail(email);
 
         if (!user) {
-            ctx.inertia.render('login', {error: 'user not found', email})
+            ctx.inertia.render('Login', {error: 'user not found', email})
             return;
         }
 
         const verify = await verifyValue(password, user.password)
 
         if (!verify) {
-            ctx.inertia.render('login', {error: 'password is incorrect', email})
+            ctx.inertia.render('Login', {error: 'password is incorrect', email})
             return;
         }
 

@@ -67,7 +67,7 @@ export const makeHandleConsentGet = <StateT, ContextT extends IRouterParamContex
             )
 
             if (!consent) {
-                ctx.inertia.render('consent')
+                ctx.inertia.render('Consent')
                 return
             }
         }

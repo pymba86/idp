@@ -1,17 +1,19 @@
 <template>
+  <div>register</div>
   <form method="post">
     <input type="text"  name="email" v-model="email">
     <input type="text"  name="password">
     <button>login</button>
   </form>
   {{error}}
-  <Link href="/auth/register">Register</Link>
+  <Link href="/auth/login">login</Link>
 </template>
 
 <script lang='ts'>
 
-import {defineComponent, ref} from 'vue';
-import {Link} from '@inertiajs/vue3';
+import { defineComponent, ref } from 'vue';
+import {Link} from "@inertiajs/vue3";
+
 export default defineComponent({
   props: {
     error: {

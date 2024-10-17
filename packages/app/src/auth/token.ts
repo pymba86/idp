@@ -8,6 +8,7 @@ import {TokenRequest} from "./types.js";
 import {HandleClientAuthentication} from "./client.js";
 import {InvalidGrant, InvalidRequest, UnsupportedGrantType} from "./errors.js";
 import {Libraries} from "../libraries/index.js";
+import {generateStandardId} from "@astoniq/idp-shared";
 
 export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
@@ -99,13 +100,20 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             throw new InvalidRequest('the request includes an invalid value for parameter "redirect_uri"');
         }
 
+        const accessTokenId = generateStandardId()
+
         const accessExpiresAt = getAccessTokenExpiration(now)
 
-        const accessToken = await generateAccessToken(authorizationCode, accessExpiresAt)
+        const accessToken = await generateAccessToken(authorizationCode, accessTokenId, accessExpiresAt)
 
         const refreshExpiresAt = getRefreshTokenExpiration(now)
 
-        const refreshToken = await generateRefreshToken(authorizationCode, refreshExpiresAt)
+        const refreshToken = await generateRefreshToken(
+            authorizationCode,
+            accessTokenId,
+            accessExpiresAt,
+            refreshExpiresAt
+        )
 
         const response: AuthorizationCodeResponse = {
             tokenType: 'Bearer',
@@ -152,13 +160,20 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
             throw new InvalidGrant('the provided refresh token is invalid, expired or revoked');
         }
 
+        const accessTokenId = generateStandardId()
+
         const accessExpiresAt = getAccessTokenExpiration(now)
 
-        const accessToken = await generateAccessToken(currentRefreshToken, accessExpiresAt)
+        const accessToken = await generateAccessToken(currentRefreshToken, accessTokenId, accessExpiresAt)
 
         const refreshExpiresAt = getRefreshTokenExpiration(now)
 
-        const refreshToken = await generateRefreshToken(currentRefreshToken, refreshExpiresAt)
+        const refreshToken = await generateRefreshToken(
+            currentRefreshToken,
+            accessTokenId,
+            accessExpiresAt,
+            refreshExpiresAt
+        )
 
         const response: RefreshTokenResponse = {
             tokenType: 'Bearer',
@@ -197,7 +212,9 @@ export const makeHandleTokenPost = <StateT, ContextT extends IRouterParamContext
 
         const accessExpiresAt = getAccessTokenExpiration(now)
 
-        const accessToken = await generateClientAccessToken(client, request.scope, accessExpiresAt)
+        const accessTokenId = generateStandardId()
+
+        const accessToken = await generateClientAccessToken(client, accessTokenId, request.scope, accessExpiresAt)
 
         const response: ClientCredentialsResponse = {
             tokenType: 'Bearer',

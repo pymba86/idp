@@ -6,12 +6,14 @@ const migration: MigrationScript = {
         await pool.query(sql.unsafe`
             create table refresh_tokens
             (
-                id              varchar(21) not null,
-                client_id       varchar(21) not null,
-                user_id         varchar(21) not null,
-                user_session_id varchar(21) not null,
-                scope           text        not null,
-                expires_at      timestamp without time zone,
+                id                varchar(21) not null,
+                client_id         varchar(21) not null,
+                user_id           varchar(21) not null,
+                user_session_id   varchar(21) not null,
+                access_token_id   varchar(21) not null,
+                scope             text        not null,
+                access_expires_at timestamp without time zone,
+                expires_at        timestamp without time zone,
                 primary key (id)
             );
         `)

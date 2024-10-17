@@ -80,7 +80,6 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
         }
     }
 
-
     const responseModes = [
         'query',
         'fragment',
