@@ -14,7 +14,7 @@ export type Options = {
 }
 
 export type Inertia = {
-    readonly render: (component: string, props?: Props) => Promise<Inertia>;
+    readonly render: (component: string, props?: Props) => void;
 };
 
 export type WithInertiaContext<Context extends IRouterParamContext = IRouterParamContext> = Context & {
@@ -57,7 +57,6 @@ export default function koaInertia<StateT, ContextT extends IRouterParamContext>
                     });
                     ctx.body = html(page);
                 }
-                return this;
             },
         };
 

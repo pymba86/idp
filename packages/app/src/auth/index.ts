@@ -10,6 +10,7 @@ import koaBody from "koa-body";
 import {makeHandleClientAuthentication} from "./client.js";
 import {makeHandleTokenPost} from "./token.js";
 import errorHandler from "./error-handler.js";
+import {makeHandleActivateGet} from "./activate.js";
 
 
 const createRouters = (options: RouterOptions) => {
@@ -51,6 +52,11 @@ const createRouters = (options: RouterOptions) => {
     }))
 
     router.post('/register', makeHandleRegisterPost({
+        queries,
+        handlers
+    }))
+
+    router.get('/activate', makeHandleActivateGet({
         queries,
         handlers
     }))

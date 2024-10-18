@@ -19,7 +19,16 @@ export const createUserRegistrationQueries = (pool: CommonQueryMethods) => {
             where ${fields.id} = ${id}
         `)
 
+    const deleteUserRegistrationById = async (id: string) => {
+        return await pool.query(sql.unsafe`
+            delete
+            from ${table}
+            where ${fields.id} = ${id}
+        `);
+    }
+
     return {
+        deleteUserRegistrationById,
         findUserRegistrationById,
         insertUserRegistration
     }
