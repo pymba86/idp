@@ -4,7 +4,7 @@ import {getEnvAsStringArray} from "../utils/env.js";
 import {buildKeyFromRawString, generatePrivateKey} from "../utils/keys.js";
 import {readFile} from 'node:fs/promises';
 import {logger} from "../utils/logger.js";
-import {deleteBaseConfigRowByKey, updateBaseConfigValueByKey} from "../queries/config.js";
+import {deleteConfigRowByKey, updateConfigValueByKey} from "../queries/config.js";
 
 const isBase64FormatPrivateKey = (key: string) => !key.includes('-');
 
@@ -60,12 +60,12 @@ const migration: MigrationScript = {
                 logger.info('Generated keys')
             }
 
-            await updateBaseConfigValueByKey(pool, key, value)
+            await updateConfigValueByKey(pool, key, value)
         }
     },
     down: async (pool) => {
         for (const key of Object.values(BaseConfigKey)) {
-            await deleteBaseConfigRowByKey(pool, key)
+            await deleteConfigRowByKey(pool, key)
         }
     }
 }

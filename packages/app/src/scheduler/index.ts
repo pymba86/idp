@@ -22,9 +22,9 @@ export type BusOptions = {
     taskConfig?: Partial<TaskConfig>
 }
 
-type TaskName = string;
+export type TaskName = string;
 
-export type Bus = {
+export type Scheduler = {
     register: (...handlers: TaskHandler<any>[]) => void;
     start: () => Promise<void>;
     stop: () => Promise<void>;
@@ -36,7 +36,7 @@ export type TaskState = {
     config: Partial<TaskConfig>
 }
 
-export function createBus(options: BusOptions): Bus {
+export function createScheduler(options: BusOptions): Scheduler {
 
     const {
         workerConfig
@@ -104,6 +104,7 @@ export function createBus(options: BusOptions): Bus {
         const sendTasks = Array.isArray(tasks) ? tasks : [tasks];
 
         const hasEffectToCurrentWorker = sendTasks.some((t) => taskHandlers.has(t.name));
+
         if (hasEffectToCurrentWorker) {
             taskWorker.notify()
         }
@@ -116,9 +117,8 @@ export function createBus(options: BusOptions): Bus {
 
         state.stopped = true;
 
-        await Promise.all([taskWorker.stop()]);
+        await taskWorker.stop();
     }
-
 
     return {
         register,

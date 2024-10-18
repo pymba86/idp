@@ -1,5 +1,5 @@
 import {CommonQueryMethods, sql} from "slonik";
-import {baseConfigGuard, BaseConfigKey, configGuard} from "@astoniq/idp-schemas";
+import {configGuard, configGuards, ConfigKey} from "@astoniq/idp-schemas";
 import {configEntity} from "../entities/index.js";
 import {convertToIdentifiers} from "../utils/sql.js";
 import {z} from 'zod'
@@ -7,17 +7,17 @@ import {DeletionError} from "../errors/slonik-error.js";
 
 const {table, fields} = convertToIdentifiers(configEntity);
 
-export const getBaseConfigRowsByKeys = async (pool: CommonQueryMethods, keys: BaseConfigKey[]) =>
+export const getConfigRowsByKeys = async (pool: CommonQueryMethods, keys: ConfigKey[]) =>
     pool.query(sql.type(configGuard)`
         select ${sql.join([fields.key, fields.value], sql.fragment`,`)}
         from ${table}
         where ${fields.key} in (${sql.join(keys, sql.fragment`,`)})
     `)
 
-export const updateBaseConfigValueByKey = async <T extends BaseConfigKey>(
+export const updateConfigValueByKey = async <T extends ConfigKey>(
     pool: CommonQueryMethods,
     key: T,
-    value: z.infer<(typeof baseConfigGuard)[T]>
+    value: z.infer<(typeof configGuards)[T]>
 ) =>
     pool.query(
         sql.unsafe`
@@ -28,7 +28,7 @@ export const updateBaseConfigValueByKey = async <T extends BaseConfigKey>(
         `
     );
 
-export const deleteBaseConfigRowByKey = async (pool: CommonQueryMethods, key: BaseConfigKey) => {
+export const deleteConfigRowByKey = async (pool: CommonQueryMethods, key: ConfigKey) => {
     const {rowCount} = await pool.query(sql.unsafe`
         delete
         from ${table}

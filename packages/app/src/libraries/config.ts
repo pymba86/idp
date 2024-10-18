@@ -1,13 +1,13 @@
 import {CommonQueryMethods} from "slonik";
 import {baseConfigGuard, BaseConfigKey, BaseConfigType} from "@astoniq/idp-schemas";
-import {getBaseConfigRowsByKeys} from "../queries/config.js";
+import {getConfigRowsByKeys} from "../queries/config.js";
 import {z, ZodError} from "zod";
 import {logger} from "../utils/logger.js";
 
 export const getBaseConfigs = async (pool: CommonQueryMethods): Promise<BaseConfigType> => {
 
     try {
-        const {rows} = await getBaseConfigRowsByKeys(pool, Object.values(BaseConfigKey));
+        const {rows} = await getConfigRowsByKeys(pool, Object.values(BaseConfigKey));
 
         return z.object(baseConfigGuard)
             .parse(Object.fromEntries(rows.map(({key, value}) => [key, value])));

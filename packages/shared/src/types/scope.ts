@@ -1,4 +1,5 @@
 
 export enum PredefinedScope {
-    Console = 'console'
+    Console = 'console',
+    Account = 'account'
 }

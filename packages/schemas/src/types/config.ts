@@ -1,4 +1,5 @@
 import {z, ZodType} from "zod";
+import {SenderProviderConfig, senderProviderConfigGuard} from "../foundations/sender.js";
 
 export enum MigrationConfigKey {
     MigrationState = 'migrationState'
@@ -20,13 +21,22 @@ export const migrationConfigGuard: {
     })
 }
 
-export enum BaseConfigKey {
-    PrivateKeys = 'privateKeys'
+export enum SenderConfigKey {
+    SenderProvider = 'senderProvider'
 }
 
-export enum SupportedSigningKeyAlgorithm {
-    RSA = 'RSA',
-    EC = 'EC'
+export type SenderConfigType = {
+    [SenderConfigKey.SenderProvider]: SenderProviderConfig
+}
+
+export const senderConfigGuard: {
+    [key in SenderConfigKey]: ZodType<SenderConfigType[key]>;
+} = {
+    [SenderConfigKey.SenderProvider]: senderProviderConfigGuard
+}
+
+export enum BaseConfigKey {
+    PrivateKeys = 'privateKeys'
 }
 
 export const baseConfigKeysGuard = z.object({
@@ -49,20 +59,24 @@ export const baseConfigGuard: {
 
 export type ConfigKey =
     | MigrationConfigKey
-    | BaseConfigKey;
+    | BaseConfigKey
+    | SenderConfigKey;
 
 export type ConfigType =
     | MigrationConfigType
-    | BaseConfigType;
+    | BaseConfigType
+    | SenderConfigType;
 
 export type ConfigGuard = typeof migrationConfigGuard & typeof baseConfigGuard
 
 export const configKeys: ConfigKey[] = [
     ...Object.values(MigrationConfigKey),
+    ...Object.values(SenderConfigKey),
     ...Object.values(BaseConfigKey)
 ]
 
 export const configGuards: ConfigGuard = {
     ...migrationConfigGuard,
+    ...senderConfigGuard,
     ...baseConfigGuard
 }
