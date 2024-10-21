@@ -1,5 +1,7 @@
 import {Handler, Task, TaskConfig, TaskHandler} from "./definitions.js";
 import {createTaskWorker} from "./task.js";
+import {CommonQueryMethods, sql} from "slonik";
+import {createTaskFactory, InsertTask} from "./messages.js";
 
 export type WorkerConfig = {
     /**
@@ -18,6 +20,7 @@ export type WorkerConfig = {
 }
 
 export type BusOptions = {
+    pool: CommonQueryMethods
     workerConfig?: Partial<WorkerConfig>
     taskConfig?: Partial<TaskConfig>
 }
@@ -28,7 +31,7 @@ export type Scheduler = {
     register: (...handlers: TaskHandler<any>[]) => void;
     start: () => Promise<void>;
     stop: () => Promise<void>;
-    send: (tasks: Task | Task[]) => Promise<void>
+    send: (tasks: Task | Task[], connection?: CommonQueryMethods) => Promise<void>
 }
 
 export type TaskState = {
@@ -39,7 +42,9 @@ export type TaskState = {
 export function createScheduler(options: BusOptions): Scheduler {
 
     const {
-        workerConfig
+        pool,
+        taskConfig = {},
+        workerConfig = {}
     } = options
 
     const config = {
@@ -49,7 +54,7 @@ export function createScheduler(options: BusOptions): Scheduler {
         ...workerConfig
     }
 
-    const taskHandlers = new Map<TaskName, TaskState & {handler: Handler<any>}>()
+    const taskHandlers = new Map<TaskName, TaskState & { handler: Handler<any, any> }>()
 
     const state = {
         started: false,
@@ -60,11 +65,7 @@ export function createScheduler(options: BusOptions): Scheduler {
         maxConcurrency: config.concurrency,
         poolIntervalInMs: config.intervalInMs,
         refillThresholdPct: config.refillPct,
-        queries: {
-            getTasks: async () => {
-                return []
-            }
-        },
+        pool: pool,
         handler: async ({data, name}) => {
             const taskHandler = taskHandlers.get(name);
 
@@ -72,9 +73,17 @@ export function createScheduler(options: BusOptions): Scheduler {
                 throw new Error('task handler ' + name + 'not registered');
             }
 
-            await taskHandler.handler({name, data})
+            return taskHandler.handler({name, data})
         }
     })
+
+    const toTask = createTaskFactory({
+        config: taskConfig
+    })
+
+    const createQueryTasks = (tasks: InsertTask[]) => {
+        return sql.unsafe`select * from create_tasks(${JSON.stringify(tasks)}::jsonb)`
+    }
 
     function register(...definitions: TaskHandler<any>[]) {
         definitions.forEach((definition) => {
@@ -100,8 +109,18 @@ export function createScheduler(options: BusOptions): Scheduler {
         taskWorker.start();
     }
 
-    async function send(tasks: Task | Task[]) {
+    async function send(tasks: Task | Task[], connection?: CommonQueryMethods) {
         const sendTasks = Array.isArray(tasks) ? tasks : [tasks];
+
+        const query = createQueryTasks(
+            sendTasks.map((task) => toTask(task))
+        );
+
+        if (connection) {
+            await connection.query(query)
+        } else {
+            await pool.query(query)
+        }
 
         const hasEffectToCurrentWorker = sendTasks.some((t) => taskHandlers.has(t.name));
 

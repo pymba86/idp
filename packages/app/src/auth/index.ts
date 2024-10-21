@@ -17,6 +17,8 @@ const createRouters = (options: RouterOptions) => {
 
     const {
         queries,
+        tasks,
+        scheduler,
         handlers,
         libraries
     } = options
@@ -53,6 +55,8 @@ const createRouters = (options: RouterOptions) => {
 
     router.post('/register', makeHandleRegisterPost({
         queries,
+        tasks,
+        scheduler,
         handlers
     }))
 

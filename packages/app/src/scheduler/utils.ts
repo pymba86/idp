@@ -1,8 +1,11 @@
 import delay from "delay";
 
-export const resolveWithinSeconds = async (promise: Promise<any>, seconds: number) => {
+export const resolveWithinExpireIn = async (promise: Promise<any>, seconds: number) => {
+
     const timeout = Math.max(1, seconds) * 1000;
-    const timeoutReject = delay.reject(timeout, { value: new Error(`handler execution exceeded ${timeout}ms`) });
+
+    const timeoutReject = delay.reject(timeout,
+        {value: new Error(`handler execution exceeded ${timeout}ms`)});
 
     let result;
 
@@ -11,7 +14,8 @@ export const resolveWithinSeconds = async (promise: Promise<any>, seconds: numbe
     } finally {
         try {
             timeoutReject.clear();
-        } catch {}
+        } catch {
+        }
     }
 
     return result;

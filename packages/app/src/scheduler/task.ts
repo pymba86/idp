@@ -1,7 +1,9 @@
 import {createWorker} from "./worker.js";
-import {BusQueries, SelectTask} from "./messages.js";
-import {resolveWithinSeconds} from "./utils.js";
+import {ResolveTask, SelectTask, selectTaskGuard} from "./messages.js";
+import {resolveWithinExpireIn} from "./utils.js";
 import {serializeError} from "serialize-error";
+import {createBatcher} from "./batcher.js";
+import {CommonQueryMethods, sql} from "slonik";
 
 export function mapCompletionDataArg(data: any) {
     if (data === null || typeof data === 'undefined' || typeof data === 'function') {
@@ -17,10 +19,10 @@ export function mapCompletionDataArg(data: any) {
 export const createTaskWorker = (
     options: {
         handler: (event: SelectTask) => Promise<any>;
-        queries: BusQueries;
         maxConcurrency: number;
         poolIntervalInMs: number;
         refillThresholdPct: number;
+        pool: CommonQueryMethods
     }
 ) => {
     const activeTasks = new Map<string, Promise<any>>();
@@ -29,13 +31,36 @@ export const createTaskWorker = (
         maxConcurrency,
         handler,
         poolIntervalInMs,
-        queries,
+        pool,
         refillThresholdPct
     } = options;
 
     let hasMoreTasks = false;
 
-    async function resolveTask(task: SelectTask) {
+    const resolveQueryTasks = (tasks: ResolveTask[]) => {
+        return sql.unsafe`select * from resolve_tasks(${JSON.stringify(tasks)}::jsonb)`
+    }
+
+    const getQueryTasks = (amount: number) => {
+        return sql.type(selectTaskGuard)`select * from get_tasks(${amount})`
+    }
+
+    const resolveTaskBatcher = createBatcher<ResolveTask>({
+        async onFlush(batch) {
+            await pool.query(resolveQueryTasks(batch))
+        },
+        maxSize: 100,
+        maxTimeInMs: 50
+    })
+
+    async function resolveTask(task: SelectTask, error: any, result?: any) {
+
+        resolveTaskBatcher.add({
+            payload: mapCompletionDataArg(error ?? result),
+            success: !error,
+            id: task.id
+        })
+
         activeTasks.delete(task.id);
 
         if (hasMoreTasks && activeTasks.size / maxConcurrency <= refillThresholdPct) {
@@ -51,9 +76,7 @@ export const createTaskWorker = (
 
             const requestedAmount = maxConcurrency - activeTasks.size;
 
-            const tasks = await queries.getTasks({
-                amount: requestedAmount,
-            })
+            const tasks = await pool.any(getQueryTasks(requestedAmount))
 
             hasMoreTasks = tasks.length === requestedAmount;
 
@@ -62,12 +85,12 @@ export const createTaskWorker = (
             }
 
             tasks.forEach((task) => {
-                const taskPromise = resolveWithinSeconds(handler(task), task.expireInSeconds)
-                    .then(() => {
-                        return resolveTask(task);
+                const taskPromise = resolveWithinExpireIn(handler(task), task.expireIn)
+                    .then((result) => {
+                        return resolveTask(task, null, result);
                     })
-                    .catch(() => {
-                        return resolveTask(task);
+                    .catch((error) => {
+                        return resolveTask(task, error);
                     });
 
                 activeTasks.set(task.id, taskPromise);
@@ -82,6 +105,7 @@ export const createTaskWorker = (
         async stop() {
             await taskWorker.stop();
             await Promise.all(Array.from(activeTasks.values()));
+            await resolveTaskBatcher.waitForAll();
         },
     }
 }

@@ -6,6 +6,10 @@ import {WithInertiaContext} from "../middlewares/koa-inertia.js";
 import {InvalidRequest} from "./errors.js";
 import {generateStandardId} from "@astoniq/idp-shared";
 import {hashValue} from "../utils/hash.js";
+import {Tasks} from "../tasks/index.js";
+import {Scheduler} from "../scheduler/index.js";
+import {buildInsertIntoWithPool} from "../database/insert-into.js";
+import {userRegistrationEntity} from "../entities/index.js";
 
 export const makeHandleRegisterGet = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
@@ -38,6 +42,8 @@ export const makeHandleRegisterGet = <StateT, ContextT extends IRouterParamConte
 
 export const makeHandleRegisterPost = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
+    tasks: Tasks,
+    scheduler: Scheduler,
     handlers: Handlers,
 }): Middleware<StateT, WithInertiaContext<ContextT>> => {
 
@@ -45,13 +51,15 @@ export const makeHandleRegisterPost = <StateT, ContextT extends IRouterParamCont
         handlers: {
             getSession
         },
+        scheduler,
+        tasks: {
+            sendUserRegisterTask
+        },
         queries: {
+            pool,
             users: {
                 findUserByEmail
             },
-            userRegistrations: {
-                insertUserRegistration
-            }
         }
     } = options
 
@@ -105,11 +113,25 @@ export const makeHandleRegisterPost = <StateT, ContextT extends IRouterParamCont
 
         const hashPassword = await hashValue(password)
 
-        await insertUserRegistration({
-            id,
-            password: hashPassword,
-            email,
-            expiresAt
+        await pool.transaction( async connection => {
+
+            const insertUserRegistration = buildInsertIntoWithPool(
+                connection, userRegistrationEntity)
+
+            await insertUserRegistration({
+                id,
+                password: hashPassword,
+                email,
+                expiresAt
+            })
+
+            await scheduler.send(
+                sendUserRegisterTask.from({
+                    email,
+                    code: id
+                }),
+                connection
+            )
         })
 
         ctx.inertia.render('RegisterActivation')

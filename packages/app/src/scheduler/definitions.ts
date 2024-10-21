@@ -10,21 +10,13 @@ export type TaskConfig = {
      */
     retryDelay: number;
     /**
-     * Expentional retrybackoff, default false
-     */
-    retryBackoff: boolean;
-    /**
      * Start after n seconds, default 0
      */
-    startAfterSeconds: number;
+    startAfter: number;
     /**
      * How many seconds a task may be in active state before it is failed because of expiration. Default 60 * 5 (5minutes)
      */
-    expireInSeconds: number;
-    /**
-     * How long task is hold in the tasks table before it is archieved. Default 7 * 24 * 60 * 60 (7 days)
-     */
-    keepInSeconds: number;
+    expireIn: number;
     /**
      * A singleton key which can be used to have an unique active task in a queue.
      */
@@ -32,13 +24,11 @@ export type TaskConfig = {
 }
 
 export const defaultTaskConfig: TaskConfig = {
-    retryBackoff: false,
     retryDelay: 5,
     retryLimit: 3,
-    startAfterSeconds: 0,
-    expireInSeconds: 60 * 5, // 5 minutes
-    keepInSeconds: 7 * 24 * 60 * 60,
-    uniqueKey: null,
+    startAfter: 0,
+    expireIn: 60 * 5, // 5 minutes
+    uniqueKey: null
 }
 
 export interface DefineTaskProps<T> {
@@ -48,16 +38,16 @@ export interface DefineTaskProps<T> {
     config?: Partial<TaskConfig>;
 }
 
-export interface TaskDefinition<T> extends DefineTaskProps<T>{
-    from: (input:T, config?: Partial<TaskConfig>) => Task<T>
+export interface TaskDefinition<T> extends DefineTaskProps<T> {
+    from: (input: T, config?: Partial<TaskConfig>) => Task<T>
 }
 
-export interface Handler<Data> {
-    (props: {name: string, data: Data}): Promise<any>
+export interface Handler<Data, Output> {
+    (props: { name: string, data: Data }): Promise<Output | void>
 }
 
-export interface TaskHandler<T>  extends TaskDefinition<T> {
-    handler: Handler<T>;
+export interface TaskHandler<T = object, O = object> extends TaskDefinition<T> {
+    handler: Handler<T, O>;
     config: Partial<TaskConfig>;
 }
 
@@ -78,14 +68,14 @@ export const defineTask = <T>(props: DefineTaskProps<T>): TaskDefinition<T> => {
                 queue: props.queue,
                 name: props.name,
                 data: input,
-                config: { ...props.config, ...config },
+                config: {...props.config, ...config},
             }
         },
         config: props.config ?? {},
     }
 }
 
-export const createTaskHandler = <T>(definition: TaskDefinition<T>, handler: Handler<T>): TaskHandler<T> => {
+export const createTaskHandler = <T, O>(definition: TaskDefinition<T>, handler: Handler<T, O>): TaskHandler<T, O> => {
     return {
         config: definition.config ?? {},
         handler: handler,

@@ -7,9 +7,13 @@ import koaErrorHandler from "../middlewares/koa-error-handler.js";
 import {initAuthApis} from "../auth/index.js";
 import {createHandlers} from "../handlers/index.js";
 import {createLibraries} from "../libraries/index.js";
+import {createScheduler} from "../scheduler/index.js";
+import {createTasks} from "../tasks/index.js";
+import {DatabasePool} from "slonik";
 
 export type ServerOptions = {
     queries: Queries
+    pool: DatabasePool
     config: Config
     keys: Keys
 }
@@ -21,6 +25,7 @@ export async function startServer(options: ServerOptions) {
     const {
         config,
         queries,
+        pool,
         keys
     } = options
 
@@ -35,13 +40,29 @@ export async function startServer(options: ServerOptions) {
         keys
     })
 
-    app.use(mount('/', initApis({handlers, keys})))
+    const scheduler = createScheduler({
+        pool
+    })
+
+    const tasks = createTasks({
+        scheduler
+    })
+
+    app.use(mount('/', initApis({
+        handlers,
+        keys,
+        tasks
+    })))
 
     app.use(mount('/auth', initAuthApis({
         queries,
+        tasks,
+        scheduler,
         handlers,
         libraries
     })))
+
+    await scheduler.start()
 
     const server = app.listen(
         config.serverPort, config.serverHost);

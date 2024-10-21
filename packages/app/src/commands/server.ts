@@ -24,6 +24,6 @@ export const server: CommandModule = {
 
         const queries = createQueries(pool)
 
-        return startServer({config, queries, keys})
+        return startServer({config, queries, keys, pool})
     }
 }
