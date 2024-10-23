@@ -79,30 +79,25 @@ export const makeHandleRegisterPost = <StateT, ContextT extends IRouterParamCont
         } = ctx.request.body
 
         if (typeof email !== 'string') {
-            ctx.inertia.render('Register', {error: 'email required'})
-            return;
+            return ctx.inertia.render('Register', {error: 'email required'})
         }
 
         if (email.length === 0) {
-            ctx.inertia.render('Register', {error: 'email is not empty', email})
-            return;
+            return ctx.inertia.render('Register', {error: 'email is not empty', email})
         }
 
         if (typeof password !== 'string') {
-            ctx.inertia.render('Register', {error: 'password required', email})
-            return;
+            return ctx.inertia.render('Register', {error: 'password required', email})
         }
 
         if (password.length === 0) {
-            ctx.inertia.render('Register', {error: 'password is not empty', email})
-            return;
+            return ctx.inertia.render('Register', {error: 'password is not empty', email})
         }
 
         const user = await findUserByEmail(email);
 
         if (user) {
-            ctx.inertia.render('Register', {error: 'email already exists', email})
-            return;
+            return ctx.inertia.render('Register', {error: 'email already exists', email})
         }
 
         const id = generateStandardId()
@@ -113,7 +108,7 @@ export const makeHandleRegisterPost = <StateT, ContextT extends IRouterParamCont
 
         const hashPassword = await hashValue(password)
 
-        await pool.transaction( async connection => {
+        await pool.transaction(async connection => {
 
             const insertUserRegistration = buildInsertIntoWithPool(
                 connection, userRegistrationEntity)
@@ -134,6 +129,6 @@ export const makeHandleRegisterPost = <StateT, ContextT extends IRouterParamCont
             )
         })
 
-        ctx.inertia.render('RegisterActivation')
+        return ctx.inertia.render('RegisterActivation')
     }
 }

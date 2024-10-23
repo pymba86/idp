@@ -1,5 +1,9 @@
 import {CommonQueryMethods, sql} from "slonik";
-import {configGuard, configGuards, ConfigKey} from "@astoniq/idp-schemas";
+import {
+    ConfigGuard,
+    configGuard,
+    ConfigKey,
+} from "@astoniq/idp-schemas";
 import {configEntity} from "../entities/index.js";
 import {convertToIdentifiers} from "../utils/sql.js";
 import {z} from 'zod'
@@ -17,7 +21,7 @@ export const getConfigRowsByKeys = async (pool: CommonQueryMethods, keys: Config
 export const updateConfigValueByKey = async <T extends ConfigKey>(
     pool: CommonQueryMethods,
     key: T,
-    value: z.infer<(typeof configGuards)[T]>
+    value: z.infer<ConfigGuard[T]>
 ) =>
     pool.query(
         sql.unsafe`

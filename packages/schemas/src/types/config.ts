@@ -67,7 +67,10 @@ export type ConfigType =
     | BaseConfigType
     | SenderConfigType;
 
-export type ConfigGuard = typeof migrationConfigGuard & typeof baseConfigGuard
+export type ConfigGuard =
+    typeof migrationConfigGuard &
+    typeof baseConfigGuard &
+    typeof senderConfigGuard
 
 export const configKeys: ConfigKey[] = [
     ...Object.values(MigrationConfigKey),

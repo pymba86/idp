@@ -19,7 +19,7 @@ const migration: MigrationScript = {
                 started_at   timestamp without time zone,
                 created_at   timestamp without time zone not null default now(),
                 expire_in    integer                     not null default (0),
-                completed_on timestamp without time zone,
+                completed_at timestamp without time zone,
                 primary key (id)
             );
 
@@ -76,12 +76,12 @@ const migration: MigrationScript = {
                         from tasks
                         where start_at < now()
                           and state < 2
-                        order by created_on
+                        order by created_at
                         limit amount for
                             update skip locked)
                         update tasks t
                             set state = 2::smallint,
-                                started_on = now(),
+                                started_at = now(),
                                 retry_count = case
                                                   when state = 1
                                                       then retry_count + 1
@@ -113,7 +113,7 @@ const migration: MigrationScript = {
                                  state = case
                                              when retry_count < retry_limit then 1::smallint
                                              else 6::smallint end,
-                                 completed_on = case when retry_count < retry_limit then null else now() end,
+                                 completed_at = case when retry_count < retry_limit then null else now() end,
                                  start_at = case
                                                    when retry_count = retry_limit then start_at
                                                    else now() + retry_delay * interval '1'
@@ -125,7 +125,7 @@ const migration: MigrationScript = {
                                  and t.state < 3)
                 update tasks t
                 set state        = 3::smallint,
-                    completed_on = now(),
+                    completed_at = now(),
                     output       = _in.payload
                 from _in
                 where t.id = _in.id
