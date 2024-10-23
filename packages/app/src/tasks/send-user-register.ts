@@ -10,7 +10,7 @@ export const createSendUserRegisterTask = (options: {
         scheduler
     } = options
 
-    const sendUserRegisterTask = defineTask({
+    const task = defineTask({
         name: 'send_user_register',
         schema: z.object({
             email: z.string(),
@@ -19,10 +19,13 @@ export const createSendUserRegisterTask = (options: {
     })
 
     scheduler.register(
-        createTaskHandler(sendUserRegisterTask, async (props) => {
-            return props
+        createTaskHandler(task, async (props) => {
+
+            const {data} = props
+
+            return task.validate(data)
         })
     )
 
-    return sendUserRegisterTask
+    return task
 }

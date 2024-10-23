@@ -1,4 +1,5 @@
-import {ZodSchema} from "zod";
+import {ZodError, ZodSchema} from "zod";
+import {formatZodError} from "../utils/zod.js";
 
 export type TaskConfig = {
     /**
@@ -39,6 +40,7 @@ export interface DefineTaskProps<T> {
 }
 
 export interface TaskDefinition<T> extends DefineTaskProps<T> {
+    validate: (input:T) => T;
     from: (input: T, config?: Partial<TaskConfig>) => Task<T>
 }
 
@@ -59,15 +61,31 @@ export interface Task<Data = {}> {
 }
 
 export const defineTask = <T>(props: DefineTaskProps<T>): TaskDefinition<T> => {
+
+    const validate = (data: T): T => {
+        try {
+           return props.schema.parse(data)
+        } catch (error) {
+            if (error instanceof ZodError) {
+                throw new Error(
+                    `invalid input: ${formatZodError(error).join('\n')}`
+                );
+            } else {
+                throw error
+            }
+        }
+    }
+
     return {
         schema: props.schema,
         name: props.name,
         queue: props.queue,
+        validate: validate,
         from: (input, config) => {
             return {
                 queue: props.queue,
                 name: props.name,
-                data: input,
+                data: validate(input),
                 config: {...props.config, ...config},
             }
         },
@@ -80,6 +98,7 @@ export const createTaskHandler = <T, O>(definition: TaskDefinition<T>, handler: 
         config: definition.config ?? {},
         handler: handler,
         from: definition.from,
+        validate: definition.validate,
         schema: definition.schema,
         name: definition.name,
         queue: definition.queue,

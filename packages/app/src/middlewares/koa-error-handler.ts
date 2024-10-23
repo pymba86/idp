@@ -4,17 +4,8 @@ import {RequestError} from "../errors/index.js";
 import {ZodError} from "zod";
 import {dictionaries, PhraseCode} from "../phrases/index.js";
 import {conditional} from "../utils/conditional.js";
+import {formatZodError} from "../utils/zod.js";
 
-const formatZodError = ({issues}: ZodError): string[] =>
-    issues.map((issue) => {
-        const base = `Error in key path "${issue.path.map(String).join('.')}": (${issue.code}) `;
-
-        if (issue.code === 'invalid_type') {
-            return base + `Expected ${issue.expected} but received ${issue.received}.`;
-        }
-
-        return base + issue.message;
-    });
 
 export type RequestErrorBody<T = unknown> = {
     message: string

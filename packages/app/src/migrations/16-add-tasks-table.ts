@@ -18,10 +18,14 @@ const migration: MigrationScript = {
                 start_after  timestamp without time zone not null default now(),
                 started_on   timestamp without time zone,
                 created_on   timestamp without time zone not null default now(),
-                expire_in    interval                    not null default interval '1 hour',
+                expire_in    integer                     not null default (0),
                 completed_on timestamp without time zone,
                 primary key (id)
             );
+            
+            -- 0: create, 1: retry, 2: active, 3 >= all completed/failed
+            create index idx_get_tasks ON tasks (start_after) where state < 2;
+            create unique index idx_unique_key_task ON tasks (unique_key) where state < 3;
         `)
 
         await pool.query(sql.unsafe`
@@ -42,8 +46,8 @@ const migration: MigrationScript = {
                        "retryLimit" as "retry_limit",
                        "retryDelay" as "retry_delay",
                        "uniqueKey" as "unique_key",
-                        now() + "startAfter" * interval '1s' as "start_after",
-                       "expireIn" * interval '1s' as "expire_in"
+                        to_timestamp("startAfter" / 1000) as "start_after",
+                       "expireIn" as "expire_in"
                 from jsonb_to_recordset(tasks) as x(
                                                     "id" varchar,
                                                     "name" text,
@@ -66,26 +70,26 @@ const migration: MigrationScript = {
                 returns setof tasks AS
             $$
             BEGIN
-                RETURN QUERY
+                return query
                     with _tasks as (
-                        SELECT id
-                        FROM tasks
-                        WHERE start_after < now()
-                          AND state < 2
-                        ORDER BY created_on
-                        LIMIT amount FOR
-                            UPDATE SKIP LOCKED)
-                        UPDATE tasks t
-                            SET state = 2::smallint,
+                        select id
+                        from tasks
+                        where start_after < now()
+                          and state < 2
+                        order by created_on
+                        limit amount for
+                            update skip locked)
+                        update tasks t
+                            set state = 2::smallint,
                                 started_on = now(),
-                                retry_count = CASE
-                                                  WHEN state = 1
-                                                      THEN retry_count + 1
-                                                  ELSE retry_count
-                                    END
-                            FROM _tasks
-                            WHERE t.id = _tasks.id
-                            RETURNING t.*;
+                                retry_count = case
+                                                  when state = 1
+                                                      then retry_count + 1
+                                                  else retry_count
+                                    end
+                            from _tasks
+                            where t.id = _tasks.id
+                            returning t.*;
             END
             $$ LANGUAGE 'plpgsql';
         `)

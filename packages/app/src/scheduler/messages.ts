@@ -24,10 +24,6 @@ export const selectTaskGuard = z.object({
 
 export type SelectTask = z.infer<typeof selectTaskGuard>
 
-export type TaskResult = {
-    id: string;
-}
-
 export type TaskState = (typeof TASK_STATES)[keyof typeof TASK_STATES];
 
 export type InsertTask<T = object> = {
@@ -59,6 +55,12 @@ export const createTaskFactory =
             };
 
             const id = generateStandardId()
+
+            const now = Date.now()
+
+            if (config.startAfter < now) {
+                config.startAfter = now
+            }
 
             return {
                 id: id,
