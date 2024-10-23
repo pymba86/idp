@@ -15,16 +15,16 @@ const migration: MigrationScript = {
                 retry_limit  integer                     not null default (0),
                 retry_count  integer                     not null default (0),
                 retry_delay  integer                     not null default (0),
-                start_after  timestamp without time zone not null default now(),
-                started_on   timestamp without time zone,
-                created_on   timestamp without time zone not null default now(),
+                start_at     timestamp without time zone not null default now(),
+                started_at   timestamp without time zone,
+                created_at   timestamp without time zone not null default now(),
                 expire_in    integer                     not null default (0),
                 completed_on timestamp without time zone,
                 primary key (id)
             );
-            
+
             -- 0: create, 1: retry, 2: active, 3 >= all completed/failed
-            create index idx_get_tasks ON tasks (start_after) where state < 2;
+            create index idx_get_tasks ON tasks (start_at) where state < 2;
             create unique index idx_unique_key_task ON tasks (unique_key) where state < 3;
         `)
 
@@ -38,7 +38,7 @@ const migration: MigrationScript = {
                                    retry_limit,
                                    retry_delay,
                                    unique_key,
-                                   start_after,
+                                   start_at,
                                    expire_in)
                 select "id" as "id",
                        "name" as "name",
@@ -46,7 +46,7 @@ const migration: MigrationScript = {
                        "retryLimit" as "retry_limit",
                        "retryDelay" as "retry_delay",
                        "uniqueKey" as "unique_key",
-                        to_timestamp("startAfter" / 1000) as "start_after",
+                        to_timestamp("startAt" / 1000) as "start_at",
                        "expireIn" as "expire_in"
                 from jsonb_to_recordset(tasks) as x(
                                                     "id" varchar,
@@ -55,7 +55,7 @@ const migration: MigrationScript = {
                                                     "retryLimit" integer,
                                                     "retryDelay" integer,
                                                     "uniqueKey" text,
-                                                    "startAfter" bigint,
+                                                    "startAt" bigint,
                                                     "expireIn" integer
                     )
                 on conflict
@@ -74,7 +74,7 @@ const migration: MigrationScript = {
                     with _tasks as (
                         select id
                         from tasks
-                        where start_after < now()
+                        where start_at < now()
                           and state < 2
                         order by created_on
                         limit amount for
@@ -114,8 +114,8 @@ const migration: MigrationScript = {
                                              when retry_count < retry_limit then 1::smallint
                                              else 6::smallint end,
                                  completed_on = case when retry_count < retry_limit then null else now() end,
-                                 start_after = case
-                                                   when retry_count = retry_limit then start_after
+                                 start_at = case
+                                                   when retry_count = retry_limit then start_at
                                                    else now() + retry_delay * interval '1'
                                      end,
                                  output = _in.payload

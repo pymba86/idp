@@ -34,7 +34,7 @@ export type InsertTask<T = object> = {
     state?: TaskState;
     retryLimit?: number;
     retryDelay?: number;
-    startAfter?: number;
+    startAt?: number;
     uniqueKey?: string | null;
 }
 
@@ -58,8 +58,8 @@ export const createTaskFactory =
 
             const now = Date.now()
 
-            if (config.startAfter < now) {
-                config.startAfter = now
+            if (config.startAt < now) {
+                config.startAt = now
             }
 
             return {
@@ -70,6 +70,6 @@ export const createTaskFactory =
                 expireIn: config.expireIn,
                 retryDelay: config.retryDelay,
                 retryLimit: config.retryLimit,
-                startAfter: config.startAfter,
+                startAt: config.startAt,
             };
         };

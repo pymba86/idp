@@ -13,7 +13,7 @@ export type TaskConfig = {
     /**
      * Start after n seconds, default 0
      */
-    startAfter: number;
+    startAt: number;
     /**
      * How many seconds a task may be in active state before it is failed because of expiration. Default 60 * 5 (5minutes)
      */
@@ -27,7 +27,7 @@ export type TaskConfig = {
 export const defaultTaskConfig: TaskConfig = {
     retryDelay: 5,
     retryLimit: 3,
-    startAfter: 0,
+    startAt: 0,
     expireIn: 60 * 5, // 5 minutes
     uniqueKey: null
 }
