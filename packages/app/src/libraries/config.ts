@@ -7,7 +7,7 @@ import {logger} from "../utils/logger.js";
 export const getBaseConfigs = async (pool: CommonQueryMethods): Promise<BaseConfigType> => {
 
     try {
-        const {rows} = await getConfigRowsByKeys(pool, Object.values(BaseConfigKey));
+        const rows = await getConfigRowsByKeys(pool, Object.values(BaseConfigKey));
 
         return z.object(baseConfigGuard)
             .parse(Object.fromEntries(rows.map(({key, value}) => [key, value])));

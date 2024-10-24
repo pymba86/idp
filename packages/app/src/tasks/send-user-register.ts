@@ -1,29 +1,35 @@
 import {Scheduler} from "../scheduler/index.js";
 import {createTaskHandler, defineTask} from "../scheduler/definitions.js";
-import {z} from "zod";
+import {userRegisterEventGuard} from "@astoniq/idp-schemas";
+import {Libraries} from "../libraries/index.js";
 
 export const createSendUserRegisterTask = (options: {
-    scheduler: Scheduler
+    scheduler: Scheduler,
+    libraries: Libraries
 }) => {
 
     const {
-        scheduler
+        scheduler,
+        libraries: {
+            sender: {
+                createSender
+            }
+        },
     } = options
 
     const task = defineTask({
         name: 'send_user_register',
-        schema: z.object({
-            email: z.string(),
-            code: z.string()
-        }),
+        schema: userRegisterEventGuard,
     })
 
     scheduler.register(
         createTaskHandler(task, async (props) => {
 
-            const {data} = props
+            const data = task.validate(props.data)
 
-            return task.validate(data)
+            const sender = await createSender()
+
+            await sender.sendUserRegisterMessage(data)
         })
     )
 

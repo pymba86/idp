@@ -37,6 +37,7 @@ export async function startServer(options: ServerOptions) {
 
     const libraries = createLibraries({
         queries,
+        handlers,
         keys
     })
 
@@ -45,7 +46,8 @@ export async function startServer(options: ServerOptions) {
     })
 
     const tasks = createTasks({
-        scheduler
+        scheduler,
+        libraries
     })
 
     app.use(mount('/', initApis({

@@ -3,11 +3,14 @@ import {Keys} from "../config/index.js";
 import {createJwtLibrary} from "./jwt.js";
 import {createTokenLibrary} from "./token.js";
 import {createClientLibrary} from "./client.js";
+import {createSenderLibrary} from "./sender.js";
+import {Handlers} from "../handlers/index.js";
 
 export type Libraries = ReturnType<typeof createLibraries>
 
-export const createLibraries = ({keys, queries}: {
+export const createLibraries = ({keys, queries, handlers}: {
     queries: Queries,
+    handlers: Handlers,
     keys: Keys
 }) => {
 
@@ -22,9 +25,15 @@ export const createLibraries = ({keys, queries}: {
         queries
     })
 
+    const sender = createSenderLibrary({
+        queries,
+        handlers
+    })
+
     return {
         client,
         token,
+        sender,
         jwt
     }
 }

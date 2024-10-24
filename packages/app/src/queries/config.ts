@@ -11,8 +11,15 @@ import {DeletionError} from "../errors/slonik-error.js";
 
 const {table, fields} = convertToIdentifiers(configEntity);
 
+export const getConfigRowByKey = async (pool: CommonQueryMethods, key: ConfigKey) =>
+    pool.maybeOne(sql.type(configGuard)`
+        select ${sql.join([fields.key, fields.value], sql.fragment`,`)}
+        from ${table}
+        where ${fields.key} = ${key}
+    `)
+
 export const getConfigRowsByKeys = async (pool: CommonQueryMethods, keys: ConfigKey[]) =>
-    pool.query(sql.type(configGuard)`
+    pool.any(sql.type(configGuard)`
         select ${sql.join([fields.key, fields.value], sql.fragment`,`)}
         from ${table}
         where ${fields.key} in (${sql.join(keys, sql.fragment`,`)})

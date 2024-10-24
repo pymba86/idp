@@ -56,6 +56,9 @@ importers:
       nanoid:
         specifier: ^5.0.1
         version: 5.0.7
+      nodemailer:
+        specifier: ^6.9.9
+        version: 6.9.15
       pino:
         specifier: ^8.20.0
         version: 8.21.0
@@ -87,6 +90,9 @@ importers:
       '@types/node':
         specifier: ^20.0.0
         version: 20.16.5
+      '@types/nodemailer':
+        specifier: ^6.4.7
+        version: 6.4.16
       '@types/yargs':
         specifier: ^17.0.13
         version: 17.0.33
@@ -662,6 +668,12 @@ packages:
     resolution: {integrity: sha512-VwYCweNo3ERajwy0IUlqqcyZ8/A7Zwa9ZP3MnENWcB11AejO+tLy3pu850goUW2FC/IJMdZUfKpX/yxL1gymCA==}
     dependencies:
       undici-types: 6.19.8
+
+  /@types/nodemailer@6.4.16:
+    resolution: {integrity: sha512-uz6hN6Pp0upXMcilM61CoKyjT7sskBoOWpptkjjJp8jIMlTdc3xG01U7proKkXzruMS4hS0zqtHNkNPFB20rKQ==}
+    dependencies:
+      '@types/node': 20.16.5
+    dev: true
 
   /@types/pg@8.11.8:
     resolution: {integrity: sha512-IqpCf8/569txXN/HoP5i1LjXfKZWL76Yr2R77xgeIICUbAYHeoaEZFhYHo2uDftecLWrTJUq63JvQu8q3lnDyA==}
@@ -1609,6 +1621,11 @@ packages:
   /node-gyp-build@4.8.2:
     resolution: {integrity: sha512-IRUxE4BVsHWXkV/SFOut4qTlagw2aM8T5/vnTsmrHJvVoKueJHRc/JaFND7QDDc61kLYUJ6qlZM3sqTSyx2dTw==}
     hasBin: true
+    dev: false
+
+  /nodemailer@6.9.15:
+    resolution: {integrity: sha512-AHf04ySLC6CIfuRtRiEYtGEXgRfa6INgWGluDhnxTZhHSKvrBu7lc1VVchQ0d8nPc4cFaZoPq8vkyNoZr0TpGQ==}
+    engines: {node: '>=6.0.0'}
     dev: false
 
   /nodemon@3.1.4:

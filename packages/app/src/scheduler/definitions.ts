@@ -45,10 +45,10 @@ export interface TaskDefinition<T> extends DefineTaskProps<T> {
 }
 
 export interface Handler<Data, Output> {
-    (props: { name: string, data: Data }): Promise<Output | void>
+    (props: { name: string, data: Data }): Promise<Output>
 }
 
-export interface TaskHandler<T = object, O = object> extends TaskDefinition<T> {
+export interface TaskHandler<T = object, O = object | void> extends TaskDefinition<T> {
     handler: Handler<T, O>;
     config: Partial<TaskConfig>;
 }
