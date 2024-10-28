@@ -1,17 +1,26 @@
 import {nextSession} from "./session.js";
 import {nanoid} from "nanoid";
-import {createRender} from "./render.js";
+import {createRenderTemplate} from "./render.js";
 import {createSessionStore} from "./data.js";
-import {CommonQueryMethods} from "slonik";
-
+import {Queries} from "../queries/index.js";
+import {Config} from "../config/index.js";
+import {getBaseUrl} from "./url.js";
 
 export type Handlers = ReturnType<typeof createHandlers>
 
-export function createHandlers(pool: CommonQueryMethods) {
+export function createHandlers(options: {
+    queries: Queries,
+    config: Config
+}) {
+
+    const {
+        queries,
+        config
+    } = options
 
     const getSession = nextSession({
         name: 'sid',
-        store: createSessionStore(pool),
+        store: createSessionStore(queries.pool),
         genId: () => nanoid(),
         cookie: {
             path: '/',
@@ -22,10 +31,13 @@ export function createHandlers(pool: CommonQueryMethods) {
         maxAge: 60 * 60 * 24 * 30, // 30 day
     })
 
-    const render = createRender()
+    const renderTemplate = createRenderTemplate()
+
+    const baseUrl = getBaseUrl(config)
 
     return {
-        render,
+        baseUrl,
+        renderTemplate,
         getSession
     }
 }

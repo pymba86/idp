@@ -11,7 +11,8 @@ export const buildSmtpSenderProvider = (config: SmtpSenderProviderConfig, option
 
     const {
         handlers: {
-            render
+            renderTemplate,
+            baseUrl
         }
     } = options
 
@@ -22,8 +23,10 @@ export const buildSmtpSenderProvider = (config: SmtpSenderProviderConfig, option
             from: config.fromEmail,
             replyTo: config.replyTo,
             to: event.email,
-            html: render('user-register'),
-            subject: 'welcome'
+            html: renderTemplate('user-register', {
+                link: `${baseUrl}/auth/activate?code=${event.code}`
+            }),
+            subject: 'Welcome'
         })
     }
 

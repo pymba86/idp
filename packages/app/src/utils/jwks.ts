@@ -1,49 +1,46 @@
-import { createHash } from 'node:crypto';
+import * as crypto from "crypto";
+import {nanoid} from "nanoid";
+import {JWK} from "@astoniq/idp-schemas";
 
-import { type JWK, type KeyLike, exportJWK as joseExportJWK } from 'jose';
+export type ExportJWK = (jwk: JWK) => JWK;
 
-const getCalculateKidComponents = (jwk: JWK) => {
-    switch (jwk.kty) {
-        case 'RSA': {
-            return {
-                e: jwk.e,
-                kty: 'RSA',
-                n: jwk.n,
-            };
-        }
-
-        case 'EC': {
-            return {
-                crv: jwk.crv,
-                kty: 'EC',
-                x: jwk.x,
-                y: jwk.y,
-            };
-        }
-
-        case 'OKP': {
-            return {
-                crv: jwk.crv,
-                kty: 'OKP',
-                x: jwk.x,
-            };
-        }
-        default:
-            throw new Error('Invalid JWK kty')
-    }
-};
-
-const calculateKid = (jwk: JWK) => {
-    const components = getCalculateKidComponents(jwk);
-
-    return createHash('sha256').update(JSON.stringify(components)).digest().toString('base64url');
-};
-
-export const exportJWK = async (key: KeyLike | Uint8Array): Promise<JWK> => {
-    const jwk = await joseExportJWK(key);
-
+export const exportJWK: ExportJWK = (jwk) => {
     return {
-        ...jwk,
-        kid: calculateKid(jwk),
+        // https://datatracker.ietf.org/doc/html/rfc7517#section-4
+        'kty': jwk.kty,
+        'use': jwk.use,
+        'alg': jwk.alg,
+        'kid': jwk.kid,
+
+        // https://datatracker.ietf.org/doc/html/rfc7518#section-6.2.1
+        'crv': jwk.crv,
+        'x': jwk.x,
+        'y': jwk.y,
+
+        // https://datatracker.ietf.org/doc/html/rfc7518#section-6.3.1
+        'e': jwk.e,
+        'n': jwk.n,
     };
 };
+
+export const generateJWK = async (): Promise<JWK> => {
+
+    const kid = nanoid()
+
+    const {privateKey} = crypto.generateKeyPairSync('ec', {
+        namedCurve: 'P-384',
+    });
+
+    const key = privateKey.export({
+        format: "jwk"
+    });
+
+    const jwk = {
+        alg: 'ES384',
+        kty: 'EC',
+        use: 'sig',
+        kid: kid,
+    }
+
+    return {...key, ...jwk};
+}

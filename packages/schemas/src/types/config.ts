@@ -1,5 +1,6 @@
 import {z, ZodType} from "zod";
 import {SenderProviderConfig, senderProviderConfigGuard} from "../foundations/sender.js";
+import {JWK, jwkGuard} from "../foundations/index.js";
 
 export enum MigrationConfigKey {
     MigrationState = 'migrationState'
@@ -36,25 +37,17 @@ export const senderConfigGuard: {
 }
 
 export enum BaseConfigKey {
-    PrivateKeys = 'privateKeys'
+    Jwks = 'jwks'
 }
 
-export const baseConfigKeysGuard = z.object({
-    id: z.string(),
-    value: z.string(),
-    createdAt: z.number()
-})
-
-export type BaseConfigKeys = z.infer<typeof baseConfigKeysGuard>;
-
 export type BaseConfigType = {
-    [BaseConfigKey.PrivateKeys]: BaseConfigKeys[]
+    [BaseConfigKey.Jwks]: JWK[]
 }
 
 export const baseConfigGuard: {
     [key in BaseConfigKey]: ZodType<BaseConfigType[key]>;
 } = {
-    [BaseConfigKey.PrivateKeys]: baseConfigKeysGuard.array()
+    [BaseConfigKey.Jwks]: jwkGuard.array()
 }
 
 export type ConfigKey =

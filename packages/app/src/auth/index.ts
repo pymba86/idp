@@ -34,7 +34,7 @@ const createRouters = (options: RouterOptions) => {
 
     router.use(
         koaInertia({
-            html: page => handlers.render('index', {page: JSON.stringify(page)})
+            html: page => handlers.renderTemplate('index', {page: JSON.stringify(page)})
         }))
 
     router.get('/', makeHandleAuthorization({

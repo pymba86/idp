@@ -7,22 +7,24 @@ const createRouters = (options: RouterOptions) => {
 
     const {
         handlers: {
-            render
+            renderTemplate
         },
-        keys
+        libraries: {
+            jwt
+        }
     } = options
 
     const router = new Router();
 
     router.get('/', (ctx, next) => {
-        ctx.body = render('index', {name: 'idp'})
+        ctx.body = renderTemplate('index', {name: 'idp'})
         ctx.status = 200
         return next()
     })
 
     const authRouter: AuthRouter = new Router()
 
-    authRouter.use(koaAuth(keys))
+    authRouter.use(koaAuth(jwt))
 
     authRouter.get('/userinfo', (ctx) => {
         ctx.body = ctx.auth

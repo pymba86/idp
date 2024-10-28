@@ -2,11 +2,10 @@ import {Middleware, Request} from "koa";
 import {RequestError} from "../errors/index.js";
 import {assertThat} from "../utils/assert-that.js";
 import {IncomingHttpHeaders} from "node:http";
-import {jwtVerify} from 'jose';
-import {Keys} from "../config/index.js";
 import {z} from 'zod'
 import {IRouterParamContext} from "koa-router";
 import {PredefinedScope} from "@astoniq/idp-shared";
+import {JWT} from "../libraries/jwt.js";
 
 const bearerTokenIdentifier = 'Bearer';
 
@@ -32,15 +31,15 @@ interface TokenInfo {
 }
 
 export const verifyBearerTokenFromRequest = async (
-    keys: Keys,
+    jwt: JWT,
     request: Request,
 ): Promise<TokenInfo> => {
     try {
         const {
-            payload: {sub, scope = ''},
-        } = await jwtVerify(
-            extractBearerTokenFromHeaders(request.headers),
-            keys.localJWKSet,
+            sub,
+            scope = '',
+        } = await jwt.verify(
+            extractBearerTokenFromHeaders(request.headers)
         );
 
         assertThat(sub, new RequestError({code: 'jwt_sub_missing', status: 401}));
@@ -70,12 +69,12 @@ export type WithAuthContext<ContextT extends IRouterParamContext = IRouterParamC
 };
 
 export default function koaAuth<StateT, ContextT extends IRouterParamContext, BodyT>(
-    keys: Keys
+    jwt: JWT
 ): Middleware<
     StateT, WithAuthContext<ContextT>, BodyT> {
     return async (ctx, next) => {
 
-        const {sub, scopes} = await verifyBearerTokenFromRequest(keys, ctx.request);
+        const {sub, scopes} = await verifyBearerTokenFromRequest(jwt, ctx.request);
 
         assertThat(
             scopes.includes(PredefinedScope.Console),

@@ -1,5 +1,5 @@
 import {Queries} from "../queries/index.js";
-import {Config, Keys} from "../config/index.js";
+import {Config} from "../config/index.js";
 import Koa from "koa";
 import mount from "koa-mount";
 import {initApis} from "../routes/index.js";
@@ -15,7 +15,6 @@ export type ServerOptions = {
     queries: Queries
     pool: DatabasePool
     config: Config
-    keys: Keys
 }
 
 const serverTimeout = 120_000;
@@ -26,19 +25,20 @@ export async function startServer(options: ServerOptions) {
         config,
         queries,
         pool,
-        keys
     } = options
 
     const app = new Koa()
 
     app.use(koaErrorHandler());
 
-    const handlers = createHandlers(queries.pool)
+    const handlers = createHandlers({
+        queries,
+        config
+    })
 
     const libraries = createLibraries({
         queries,
         handlers,
-        keys
     })
 
     const scheduler = createScheduler({
@@ -47,12 +47,13 @@ export async function startServer(options: ServerOptions) {
 
     const tasks = createTasks({
         scheduler,
-        libraries
+        queries,
+        handlers
     })
 
     app.use(mount('/', initApis({
         handlers,
-        keys,
+        libraries,
         tasks
     })))
 

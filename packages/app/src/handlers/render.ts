@@ -6,7 +6,7 @@ const currentDirname = path.dirname(fileURLToPath(import.meta['url']))
 
 const viewsDirectory = path.join(currentDirname, "..", "views");
 
-export function createRender() {
+export function createRenderTemplate() {
 
     const eta = new Eta({
         views: viewsDirectory,

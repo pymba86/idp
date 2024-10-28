@@ -9,6 +9,10 @@ export const loadConfig = () => {
         return new Error(`No Postgres DSN found in env key 'DB_URL' variables'`);
     });
 
+    const baseUrl = tryThat(() => assertEnv('BASE_URL'), () => {
+        return new Error(`No base url found in env key 'BASE_URL' variables'`);
+    })
+
     const databasePoolSize = Number(
         getEnv('DATABASE_POOL_SIZE', '20'));
 
@@ -22,6 +26,7 @@ export const loadConfig = () => {
         getEnv('SERVER_PORT', '3000'))
 
     return {
+        baseUrl,
         databaseUrl,
         isUnitTest,
         serverHost,
