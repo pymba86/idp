@@ -2,7 +2,7 @@ import {configEntity} from "../entities/index.js";
 import {convertToIdentifiers} from "../utils/sql.js";
 import {CommonQueryMethods, DatabaseTransactionConnection, NotFoundError, sql} from "slonik";
 import {Entity, EntityLike} from "../types/index.js";
-import {MigrationState, MigrationConfigKey, configGuard, configGuards} from "@astoniq/idp-schemas";
+import {MigrationStateConfig, ConfigKey, configGuard, configTypeGuard} from "@astoniq/idp-schemas";
 import {z} from 'zod';
 
 const {table, fields} = convertToIdentifiers(configEntity);
@@ -30,10 +30,10 @@ export const getCurrentDatabaseMigrationTimestamp = async (pool: CommonQueryMeth
         const result = await pool.one(sql.type(configGuard)`
             select *
             from ${table}
-            where ${fields.key} = ${MigrationConfigKey.MigrationState}
+            where ${fields.key} = ${ConfigKey.MigrationState}
         `)
 
-        const parsed = configGuards[MigrationConfigKey.MigrationState]
+        const parsed = configTypeGuard[ConfigKey.MigrationState]
             .safeParse(result?.value)
 
         return (parsed.success && parsed.data.timestamp) || 0;
@@ -50,14 +50,14 @@ export const updateMigrationTimestamp = async (
     connection: DatabaseTransactionConnection,
     timestamp: number
 ) => {
-    const value: MigrationState = {
+    const value: MigrationStateConfig = {
         timestamp
     }
 
     await connection.query(
         sql.unsafe`
             insert into ${table} (${fields.key}, ${fields.value})
-            values (${MigrationConfigKey.MigrationState}, ${sql.jsonb(value)}) on conflict (${fields.key}) do
-            update set ${fields.value}=excluded.${fields.value}`
+            values (${ConfigKey.MigrationState}, ${sql.jsonb(value)})
+            on conflict (${fields.key}) do update set ${fields.value}=excluded.${fields.value}`
     )
 }

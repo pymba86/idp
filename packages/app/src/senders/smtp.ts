@@ -11,7 +11,7 @@ export const buildSmtpSenderProvider = (config: SmtpSenderProviderConfig, option
 
     const {
         handlers: {
-            renderTemplate,
+            template,
             baseUrl
         }
     } = options
@@ -19,13 +19,16 @@ export const buildSmtpSenderProvider = (config: SmtpSenderProviderConfig, option
     const transport = createTransport(config)
 
     const sendUserRegisterMessage = async (event: UserRegisterEvent) => {
+
+        const html = await template.renderAsync('user-register', {
+            link: `${baseUrl}/auth/activate?code=${event.code}`
+        })
+
         await transport.sendMail({
             from: config.fromEmail,
             replyTo: config.replyTo,
             to: event.email,
-            html: renderTemplate('user-register', {
-                link: `${baseUrl}/auth/activate?code=${event.code}`
-            }),
+            html: html,
             subject: 'Welcome'
         })
     }

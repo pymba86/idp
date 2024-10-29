@@ -25,15 +25,10 @@ export const extractBearerTokenFromHeaders = ({authorization}: IncomingHttpHeade
     return authorization.slice(bearerTokenIdentifier.length + 1);
 };
 
-interface TokenInfo {
-    sub: string;
-    scopes: string[]
-}
-
 export const verifyBearerTokenFromRequest = async (
     jwt: JWT,
     request: Request,
-): Promise<TokenInfo> => {
+) => {
     try {
         const {
             sub,
@@ -42,9 +37,11 @@ export const verifyBearerTokenFromRequest = async (
             extractBearerTokenFromHeaders(request.headers)
         );
 
-        assertThat(sub, new RequestError({code: 'jwt_sub_missing', status: 401}));
+        return {
+            sub,
+            scopes: z.string().parse(scope).split(' ')
+        };
 
-        return {sub, scopes: z.string().parse(scope).split(' ')};
     } catch (error: unknown) {
         if (error instanceof RequestError) {
             throw error;

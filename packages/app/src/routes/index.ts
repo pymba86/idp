@@ -8,7 +8,7 @@ const createRouters = (options: RouterOptions) => {
 
     const {
         handlers: {
-            renderTemplate
+            template
         },
         libraries: {
             jwt
@@ -17,8 +17,8 @@ const createRouters = (options: RouterOptions) => {
 
     const router = new Router();
 
-    router.get('/', (ctx, next) => {
-        ctx.body = renderTemplate('index', {name: 'idp'})
+    router.get('/', async (ctx, next) => {
+        ctx.body = await template.renderAsync('index', {name: 'idp'})
         return next()
     })
 

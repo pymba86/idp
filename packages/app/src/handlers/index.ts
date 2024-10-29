@@ -1,6 +1,6 @@
 import {nextSession} from "./session.js";
 import {nanoid} from "nanoid";
-import {createRenderTemplate} from "./render.js";
+import {createTemplate} from "./template.js";
 import {createSessionStore} from "./data.js";
 import {Queries} from "../queries/index.js";
 import {Config} from "../config/index.js";
@@ -31,13 +31,13 @@ export function createHandlers(options: {
         maxAge: 60 * 60 * 24 * 30, // 30 day
     })
 
-    const renderTemplate = createRenderTemplate()
+    const template = createTemplate()
 
     const baseUrl = getBaseUrl(config)
 
     return {
         baseUrl,
-        renderTemplate,
+        template,
         getSession
     }
 }

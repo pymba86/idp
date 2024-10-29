@@ -10,7 +10,7 @@ export type Page = {
 };
 
 export type Options = {
-    readonly html: (page: Page) => string;
+    readonly html: (page: Page) => Promise<string>;
 }
 
 export type Inertia = {
@@ -55,7 +55,7 @@ export default function koaInertia<StateT, ContextT extends IRouterParamContext>
                     ctx.set({
                         [headers.ContentType]: 'text/html',
                     });
-                    ctx.body = html(page);
+                    ctx.body = await html(page);
                 }
             },
         };

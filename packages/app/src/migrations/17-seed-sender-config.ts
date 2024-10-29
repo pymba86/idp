@@ -1,14 +1,14 @@
 import {MigrationScript} from "../types/index.js";
-import {SenderConfigKey} from "@astoniq/idp-schemas";
+import {ConfigKey} from "@astoniq/idp-schemas";
 import {deleteConfigByKey, updateConfigByKey} from "../queries/config.js";
 import {defaultSenderProviderConfig} from "../senders/definitions.js";
 
 const migration: MigrationScript = {
     up: async (pool) => {
-        await updateConfigByKey(pool, SenderConfigKey.SenderProvider, defaultSenderProviderConfig);
+        await updateConfigByKey(pool, ConfigKey.SenderProvider, defaultSenderProviderConfig);
     },
     down: async (pool) => {
-        await deleteConfigByKey(pool, SenderConfigKey.SenderProvider);
+        await deleteConfigByKey(pool, ConfigKey.SenderProvider);
     }
 }
 

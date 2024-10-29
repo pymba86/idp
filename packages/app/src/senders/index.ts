@@ -1,4 +1,4 @@
-import {SenderConfigKey, SenderProviderType} from "@astoniq/idp-schemas";
+import {ConfigKey, SenderProviderType} from "@astoniq/idp-schemas";
 import {buildConsoleSenderProvider} from "./console.js";
 import {defaultSenderProviderConfig, SenderProvider} from "./definitions.js";
 import {buildSmtpSenderProvider} from "./smtp.js";
@@ -18,8 +18,7 @@ export const buildSenderProvider = async (
         }
     } = options
 
-    const config = await getConfigByKey(
-        pool, SenderConfigKey.SenderProvider)
+    const config = await getConfigByKey(pool, ConfigKey.SenderProvider)
 
     switch (config.provider) {
         case SenderProviderType.Console:

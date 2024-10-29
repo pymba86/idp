@@ -9,8 +9,8 @@ import {formatZodError} from "../utils/zod.js";
 
 export type RequestErrorBody<T = unknown> = {
     message: string
-    data: T
     code: PhraseCode;
+    data: T
     details?: string
 }
 
@@ -36,16 +36,22 @@ export default function koaErrorHandler<StateT, ContextT, BodyT>(): Middleware<
                 }
 
                 const createDetails = (data: unknown) => {
+
+                    if (data instanceof ZodError) {
+                        return formatZodError(<ZodError>data).join('\n')
+                    }
+
                     if (data instanceof SyntaxError) {
                         return conditional(data.message);
                     }
-                    return conditional(data instanceof ZodError && formatZodError(<ZodError>data).join('\n'));
+
+                    return conditional(data instanceof Error && data.message);
                 }
 
                 const body: RequestErrorBody = {
+                    code: error.code,
                     message: message,
                     data: error.data,
-                    code: error.code,
                     details: createDetails(error.data)
                 }
 

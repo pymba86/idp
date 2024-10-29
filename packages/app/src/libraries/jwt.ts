@@ -3,7 +3,7 @@ import {sign as signSync, verify as verifySync} from "crypto";
 import {TextEncoder, promisify} from 'util';
 import {Queries} from "../queries/index.js";
 import {getConfigByKey} from "../queries/config.js";
-import {BaseConfigKey, JWK} from "@astoniq/idp-schemas";
+import {ConfigKey, JWK} from "@astoniq/idp-schemas";
 
 interface JWTPayload {
     sub: string;
@@ -56,7 +56,7 @@ export const createJwtLibrary = (
         if (ttl <= now) {
 
             // Load current jwks from database
-            const jwks = await getConfigByKey(pool, BaseConfigKey.Jwks)
+            const jwks = await getConfigByKey(pool, ConfigKey.Jwks)
 
             // Refresh ttl 1 hour
             ttl = now + 60 * 60 * 1000 // 1 hour
@@ -162,13 +162,25 @@ export const createJwtLibrary = (
             throw new Error("The jwt signature does not match the verification signature");
         }
 
-        const payload = Buffer
+        const payload: JWTPayload = JSON.parse(Buffer
             .from(compactPayload, 'base64url')
-            .toString();
+            .toString()
+        );
 
-        return JSON.parse(payload)
+        return validate(payload)
+    }
+
+    const validate = (payload: JWTPayload): JWTPayload => {
+
+        const now = Date.now()
+
+        if (payload.exp < now) {
+            throw new Error('The jwt expired')
+        }
+
+        return payload
     }
 
 
-    return {getKeys, sign, verify};
+    return {getKeys, sign, verify, validate};
 };

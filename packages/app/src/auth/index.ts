@@ -32,9 +32,13 @@ const createRouters = (options: RouterOptions) => {
     router.use(koaBody())
     router.use(errorHandler())
 
+    const {
+        template
+    } = handlers
+
     router.use(
         koaInertia({
-            html: page => handlers.renderTemplate('index', {page: JSON.stringify(page)})
+            html: page => template.renderAsync('index', {page: JSON.stringify(page)})
         }))
 
     router.get('/', makeHandleAuthorization({
