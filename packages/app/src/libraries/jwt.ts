@@ -80,6 +80,7 @@ export const createJwtLibrary = (
 
     const sign = async <T extends JWTPayload = JWTPayload>(payload: T): Promise<string> => {
 
+        // Get first jwk (current key)
         const [jwk] = await getKeys()
 
         if (!jwk) {

@@ -2,6 +2,7 @@ import Koa from "koa";
 import Router from "koa-router";
 import {AuthRouter, RouterOptions} from "./types.js";
 import koaAuth from "../middlewares/koa-auth.js";
+import {exportJWK} from "../utils/jwks.js";
 
 const createRouters = (options: RouterOptions) => {
 
@@ -18,8 +19,16 @@ const createRouters = (options: RouterOptions) => {
 
     router.get('/', (ctx, next) => {
         ctx.body = renderTemplate('index', {name: 'idp'})
-        ctx.status = 200
         return next()
+    })
+
+    router.get('/jwks', async (ctx) => {
+
+        const jwks = await jwt.getKeys()
+
+        ctx.body = {
+            keys: jwks.map(key => exportJWK(key))
+        }
     })
 
     const authRouter: AuthRouter = new Router()
