@@ -3,6 +3,7 @@ import {BaseConfigKey, BaseConfigType} from "@astoniq/idp-schemas";
 import {logger} from "../utils/logger.js";
 import {deleteConfigByKey, updateConfigByKey} from "../queries/config.js";
 import {generateJWK} from "../utils/jwks.js";
+import {generateStandardId} from "@astoniq/idp-shared";
 
 const keysConfigReaders: {
     [key in BaseConfigKey]: () => Promise<{
@@ -11,8 +12,16 @@ const keysConfigReaders: {
     }>
 } = {
     [BaseConfigKey.Jwks]: async () => {
+        const id = generateStandardId()
+        const key = await generateJWK(id)
         return {
-            value: [await generateJWK()],
+            value: [
+                {
+                    id,
+                    key,
+                    startAt: Date.now()
+                }
+            ],
             fromEnv: false,
         };
     }

@@ -3,7 +3,7 @@ import {sign as signSync, verify as verifySync} from "crypto";
 import {TextEncoder, promisify} from 'util';
 import {Queries} from "../queries/index.js";
 import {getConfigByKey} from "../queries/config.js";
-import {BaseConfigKey} from "@astoniq/idp-schemas";
+import {BaseConfigKey, JWK} from "@astoniq/idp-schemas";
 
 interface JWTPayload {
     sub: string;
@@ -45,12 +45,45 @@ export const createJwtLibrary = (
         }
     };
 
+    const cache = new Array<JWK>()
+
+    let ttl = Date.now()
+
+    const getKeys = async (): Promise<ReadonlyArray<JWK>> => {
+
+        const now = Date.now()
+
+        if (ttl <= now) {
+
+            // Load current jwks from database
+            const jwks = await getConfigByKey(pool, BaseConfigKey.Jwks)
+
+            // Refresh ttl 1 hour
+            ttl = now + 60 * 60 * 1000 // 1 hour
+
+            // Clear all cache
+            cache.slice(0, cache.length)
+
+            // Update cache
+            for (const jwk of jwks) {
+                // Filter key start at after now
+                if (jwk.startAt > now) {
+                    ttl = jwk.startAt < ttl ? jwk.startAt : ttl
+                } else {
+                    cache.push(jwk.key)
+                }
+            }
+        }
+
+        return cache
+    }
+
     const sign = async <T extends JWTPayload = JWTPayload>(payload: T): Promise<string> => {
 
-        const [jwk] = await getConfigByKey(pool, BaseConfigKey.Jwks)
+        const [jwk] = await getKeys()
 
         if (!jwk) {
-            throw new Error('JWK required for jwt sign (jwks empty)')
+            throw new Error('current jwk required for jwt sign (jwks empty)')
         }
 
         const protectedHeader = {
@@ -70,7 +103,10 @@ export const createJwtLibrary = (
         const signature = await cryptoSign(
             algorithm,
             data,
-            {key: jwk, format: 'jwk'});
+            {
+                key: jwk,
+                format: 'jwk'
+            });
 
         const compactSignature = signature.toString('base64url');
 
@@ -102,10 +138,11 @@ export const createJwtLibrary = (
 
         const algorithm = digest(protectedHeader.alg)
 
-        const jwks = await getConfigByKey(
-            pool, BaseConfigKey.Jwks)
+        // Get current keys
+        const jwks = await getKeys()
 
-        const jwk = jwks.find(key => key.kid === protectedHeader.kid)
+        const jwk = jwks.find(
+            key => key.kid === protectedHeader.kid)
 
         if (!jwk) {
             throw new Error('The jwt kid not found in jwks')
@@ -114,7 +151,10 @@ export const createJwtLibrary = (
         const valid = cryptoVerify(
             algorithm,
             data,
-            {key: jwk, format: 'jwk'},
+            {
+                key: jwk,
+                format: 'jwk'
+            },
             signature);
 
         if (!valid) {
@@ -129,5 +169,5 @@ export const createJwtLibrary = (
     }
 
 
-    return {sign, verify};
+    return {getKeys, sign, verify};
 };

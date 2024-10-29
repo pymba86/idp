@@ -40,14 +40,24 @@ export enum BaseConfigKey {
     Jwks = 'jwks'
 }
 
+export type JWKConfig = {
+    id: string;
+    key: JWK;
+    startAt: number;
+}
+
 export type BaseConfigType = {
-    [BaseConfigKey.Jwks]: JWK[]
+    [BaseConfigKey.Jwks]: JWKConfig[]
 }
 
 export const baseConfigGuard: {
     [key in BaseConfigKey]: ZodType<BaseConfigType[key]>;
 } = {
-    [BaseConfigKey.Jwks]: jwkGuard.array()
+    [BaseConfigKey.Jwks]: z.object({
+        id: z.string(),
+        key: jwkGuard,
+        startAt: z.number()
+    }).array()
 }
 
 export type ConfigKey =

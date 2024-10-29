@@ -1,5 +1,4 @@
 import * as crypto from "crypto";
-import {nanoid} from "nanoid";
 import {JWK} from "@astoniq/idp-schemas";
 
 export type ExportJWK = (jwk: JWK) => JWK;
@@ -23,9 +22,7 @@ export const exportJWK: ExportJWK = (jwk) => {
     };
 };
 
-export const generateJWK = async (): Promise<JWK> => {
-
-    const kid = nanoid()
+export const generateJWK = async (id: string): Promise<JWK> => {
 
     const {privateKey} = crypto.generateKeyPairSync('ec', {
         namedCurve: 'P-384',
@@ -39,7 +36,7 @@ export const generateJWK = async (): Promise<JWK> => {
         alg: 'ES384',
         kty: 'EC',
         use: 'sig',
-        kid: kid,
+        kid: id,
     }
 
     return {...key, ...jwk};
