@@ -4,7 +4,7 @@ import {Middleware} from "koa";
 import {IRouterParamContext} from "koa-router";
 import {WithInertiaContext} from "../middlewares/koa-inertia.js";
 import {InvalidRequest} from "./errors.js";
-import {generateStandardId} from "@astoniq/idp-shared";
+import {emailRegEx, generateStandardId} from "@astoniq/idp-shared";
 import {verifyValue} from "../utils/hash.js";
 
 export const makeHandleLoginGet = <StateT, ContextT extends IRouterParamContext>(options: {
@@ -88,6 +88,10 @@ export const makeHandleLoginPost = <StateT, ContextT extends IRouterParamContext
         if (password.length === 0) {
             ctx.inertia.render('Login', {error: 'password is not empty', email})
             return;
+        }
+
+        if (!emailRegEx.test(email)) {
+            return ctx.inertia.render('Login', {error: 'email bad', email})
         }
 
         const user = await findUserByEmail(email);

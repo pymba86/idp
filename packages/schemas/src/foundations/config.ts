@@ -27,6 +27,7 @@ export type JWKSConfig = z.infer<typeof jwksConfigGuard>
 export const signInExperienceConfigGuard = z.object({
     privacyPolicyUrl: z.string().optional(),
     termsOfUseUrl: z.string().optional(),
+    blockedDomains: z.string().array(),
     passwordPolicy: passwordPolicyGuard
 })
 

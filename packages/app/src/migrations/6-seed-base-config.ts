@@ -22,6 +22,7 @@ const migration: MigrationScript = {
 
         // SignInExperience
         await updateConfigByKey(pool, ConfigKey.SignInExperience, {
+            blockedDomains: [],
             passwordPolicy: {
                 length: {
                     min: 8,

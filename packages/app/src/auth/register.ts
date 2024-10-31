@@ -95,16 +95,33 @@ export const makeHandleRegisterPost = <StateT, ContextT extends IRouterParamCont
             return ctx.inertia.render('Register', {error: 'password is not empty', email})
         }
 
+        // Проверка по email
         if (!emailRegEx.test(email)) {
             return ctx.inertia.render('Register', {error: 'email bad', email})
         }
 
+        // Черный список доменов при регистрации
+        const domain = email.split('@')[1];
+
+        if (!domain) {
+            return ctx.inertia.render('Register', {error: 'email bad', email})
+        }
+
+        const blocked = ctx.signInExperience
+            .blockedDomains.includes(domain);
+
+        if (blocked) {
+            return ctx.inertia.render('Register', {error: 'email domain blocked', email})
+        }
+
+        // Поиск пользователя в существующих
         const user = await findUserByEmail(email);
 
         if (user) {
             return ctx.inertia.render('Register', {error: 'email already exists', email})
         }
 
+        // Проверка политики пароля
         const passwordChecker = buildPasswordChecker(
             ctx.signInExperience.passwordPolicy)
 
