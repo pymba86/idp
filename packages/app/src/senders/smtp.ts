@@ -1,13 +1,13 @@
-import {SmtpSenderProviderConfig, UserRegisterEvent} from "@astoniq/idp-schemas";
-import {SenderProvider} from "./definitions.js";
+import {SmtpSenderConfig, UserRegisterEvent} from "@astoniq/idp-schemas";
+import {Sender} from "./definitions.js";
 import {createTransport} from "nodemailer";
 import {Queries} from "../queries/index.js";
 import {Handlers} from "../handlers/index.js";
 
-export const buildSmtpSenderProvider = (config: SmtpSenderProviderConfig, options: {
+export const buildSmtpSender = (config: SmtpSenderConfig, options: {
     queries: Queries,
     handlers: Handlers
-}): SenderProvider => {
+}): Sender => {
 
     const {
         handlers: {

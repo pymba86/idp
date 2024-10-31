@@ -1,18 +1,18 @@
 import {z} from "zod";
 
-export enum SenderProviderType {
+export enum SenderType {
     Console = 'console',
     Smtp = 'smtp'
 }
 
-export const consoleSenderProviderConfigGuard = z.object({
-    provider: z.literal(SenderProviderType.Console)
+export const consoleSenderConfigGuard = z.object({
+    provider: z.literal(SenderType.Console)
 })
 
-export type ConsoleSenderProviderConfig = z.infer<typeof consoleSenderProviderConfigGuard>
+export type ConsoleSenderConfig = z.infer<typeof consoleSenderConfigGuard>
 
-export const smtpSenderProviderConfigGuard = z.object({
-    provider: z.literal(SenderProviderType.Smtp),
+export const smtpSenderConfigGuard = z.object({
+    provider: z.literal(SenderType.Smtp),
     host: z.string(),
     port: z.number(),
     auth: z.object({
@@ -29,11 +29,11 @@ export const smtpSenderProviderConfigGuard = z.object({
     localAddress: z.string().optional(),
 })
 
-export type SmtpSenderProviderConfig = z.infer<typeof smtpSenderProviderConfigGuard>
+export type SmtpSenderConfig = z.infer<typeof smtpSenderConfigGuard>
 
-export const senderProviderConfigGuard = z.discriminatedUnion('provider', [
-    consoleSenderProviderConfigGuard,
-    smtpSenderProviderConfigGuard
+export const senderConfigGuard = z.discriminatedUnion('provider', [
+    consoleSenderConfigGuard,
+    smtpSenderConfigGuard
 ])
 
-export type SenderProviderConfig = z.infer<typeof senderProviderConfigGuard>;
+export type SenderConfig = z.infer<typeof senderConfigGuard>;

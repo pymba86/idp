@@ -1,13 +1,13 @@
 import {
-    ConsoleSenderProviderConfig,
-    SenderProviderType,
+    ConsoleSenderConfig,
+    SenderType,
     UserRegisterEvent
 } from "@astoniq/idp-schemas";
 
-export const defaultSenderProviderConfig: ConsoleSenderProviderConfig = {
-    provider: SenderProviderType.Console
+export const defaultSenderConfig: ConsoleSenderConfig = {
+    provider: SenderType.Console
 }
 
-export interface SenderProvider {
+export interface Sender {
     sendUserRegisterMessage(event: UserRegisterEvent): Promise<void>
 }

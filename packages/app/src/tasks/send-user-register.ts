@@ -2,7 +2,7 @@ import {Scheduler} from "../scheduler/index.js";
 import {createTaskHandler, defineTask} from "../scheduler/definitions.js";
 import {userRegisterEventGuard} from "@astoniq/idp-schemas";
 import {Queries} from "../queries/index.js";
-import {buildSenderProvider} from "../senders/index.js";
+import {buildSender} from "../senders/index.js";
 import {Handlers} from "../handlers/index.js";
 
 export const createSendUserRegisterTask = (options: {
@@ -25,7 +25,7 @@ export const createSendUserRegisterTask = (options: {
 
             const data = task.validate(props.data)
 
-            const sender = await buildSenderProvider(options)
+            const sender = await buildSender(options)
 
             await sender.sendUserRegisterMessage(data)
         })

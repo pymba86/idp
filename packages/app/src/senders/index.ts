@@ -1,16 +1,16 @@
-import {ConfigKey, SenderProviderType} from "@astoniq/idp-schemas";
-import {buildConsoleSenderProvider} from "./console.js";
-import {defaultSenderProviderConfig, SenderProvider} from "./definitions.js";
-import {buildSmtpSenderProvider} from "./smtp.js";
+import {ConfigKey, SenderType} from "@astoniq/idp-schemas";
+import {buildConsoleSender} from "./console.js";
+import {defaultSenderConfig, Sender} from "./definitions.js";
+import {buildSmtpSender} from "./smtp.js";
 import {Queries} from "../queries/index.js";
 import {Handlers} from "../handlers/index.js";
 import {getConfigByKey} from "../queries/config.js";
 
-export const buildSenderProvider = async (
+export const buildSender = async (
     options: {
         queries: Queries,
         handlers: Handlers
-    }): Promise<SenderProvider> => {
+    }): Promise<Sender> => {
 
     const {
         queries: {
@@ -18,14 +18,14 @@ export const buildSenderProvider = async (
         }
     } = options
 
-    const config = await getConfigByKey(pool, ConfigKey.SenderProvider)
+    const config = await getConfigByKey(pool, ConfigKey.Sender)
 
     switch (config.provider) {
-        case SenderProviderType.Console:
-            return buildConsoleSenderProvider(config)
-        case SenderProviderType.Smtp:
-            return buildSmtpSenderProvider(config, options)
+        case SenderType.Console:
+            return buildConsoleSender(config)
+        case SenderType.Smtp:
+            return buildSmtpSender(config, options)
         default:
-            return buildConsoleSenderProvider(defaultSenderProviderConfig)
+            return buildConsoleSender(defaultSenderConfig)
     }
 }

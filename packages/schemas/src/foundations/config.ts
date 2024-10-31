@@ -1,11 +1,11 @@
 import {z, ZodType} from "zod";
-import {SenderProviderConfig, senderProviderConfigGuard} from "./sender.js";
+import {SenderConfig, senderConfigGuard} from "./sender.js";
 import {jwkGuard} from "./jwk.js";
 import {passwordPolicyGuard} from "./password.js";
 
 export enum ConfigKey {
     MigrationState = 'migrationState',
-    SenderProvider = 'senderProvider',
+    Sender = 'sender',
     SignInExperience = 'signInExperience',
     Jwks = 'jwks'
 }
@@ -35,7 +35,7 @@ export type SignInExperienceConfig = z.infer<typeof signInExperienceConfigGuard>
 
 export type ConfigType = {
     [ConfigKey.MigrationState]: MigrationStateConfig
-    [ConfigKey.SenderProvider]: SenderProviderConfig
+    [ConfigKey.Sender]: SenderConfig
     [ConfigKey.SignInExperience]: SignInExperienceConfig
     [ConfigKey.Jwks]: JWKSConfig
 }
@@ -44,7 +44,7 @@ export const configTypeGuard: {
     [key in ConfigKey]: ZodType<ConfigType[key]>;
 } = {
     [ConfigKey.MigrationState]: migrationStateConfigGuard,
-    [ConfigKey.SenderProvider]: senderProviderConfigGuard,
+    [ConfigKey.Sender]: senderConfigGuard,
     [ConfigKey.Jwks]: jwksConfigGuard,
     [ConfigKey.SignInExperience]: signInExperienceConfigGuard
 }
