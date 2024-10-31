@@ -4,7 +4,9 @@ import * as console from "console";
 
 export const buildConsoleSenderProvider = (config: ConsoleSenderProviderConfig): SenderProvider => {
 
-    const {} = config
+    const {
+
+    } = config
 
     const sendUserRegisterMessage = async (event: UserRegisterEvent) => {
         console.log(event)

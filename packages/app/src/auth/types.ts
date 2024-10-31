@@ -1,10 +1,11 @@
 import {Queries} from "../queries/index.js";
 import {Handlers} from "../handlers/index.js";
-import Router from "koa-router";
+import Router, {IRouterParamContext} from "koa-router";
 import {WithInertiaContext} from "../middlewares/koa-inertia.js";
 import {Libraries} from "../libraries/index.js";
 import {Tasks} from "../tasks/index.js";
 import {Scheduler} from "../scheduler/index.js";
+import {WithSignInExperienceContext} from "../middlewares/koa-sign-in-experience.js";
 
 export type RouterOptions = {
     tasks: Tasks
@@ -14,7 +15,11 @@ export type RouterOptions = {
     libraries: Libraries
 }
 
-export type AuthRouter = Router<unknown, WithInertiaContext>
+export type AuthRouterContext<Context extends IRouterParamContext = IRouterParamContext> =
+    WithInertiaContext<Context>
+    & WithSignInExperienceContext<Context>
+
+export type AuthRouter = Router<unknown, AuthRouterContext>
 
 
 export interface AuthorizationRequest {

@@ -11,6 +11,7 @@ const migration: MigrationScript = {
 
         const key = await generateJWK(id)
 
+        // JWKS
         await updateConfigByKey(pool, ConfigKey.Jwks, [
             {
                 id,
@@ -18,9 +19,21 @@ const migration: MigrationScript = {
                 startAt: Date.now()
             }
         ])
+
+        // SignInExperience
+        await updateConfigByKey(pool, ConfigKey.SignInExperience, {
+            passwordPolicy: {
+                length: {
+                    min: 8,
+                    max: 256
+                },
+                charTypes: []
+            }
+        })
     },
     down: async (pool) => {
         await deleteConfigByKey(pool, ConfigKey.Jwks)
+        await deleteConfigByKey(pool, ConfigKey.SignInExperience)
     }
 }
 

@@ -4,12 +4,13 @@ import {Middleware} from "koa";
 import {IRouterParamContext} from "koa-router";
 import {WithInertiaContext} from "../middlewares/koa-inertia.js";
 import {InvalidRequest} from "./errors.js";
-import {generateStandardId} from "@astoniq/idp-shared";
+import {buildPasswordChecker, emailRegEx, generateStandardId} from "@astoniq/idp-shared";
 import {hashValue} from "../utils/hash.js";
 import {Tasks} from "../tasks/index.js";
 import {Scheduler} from "../scheduler/index.js";
 import {buildInsertIntoWithPool} from "../database/insert-into.js";
 import {userRegistrationEntity} from "../entities/index.js";
+import {AuthRouterContext} from "./types.js";
 
 export const makeHandleRegisterGet = <StateT, ContextT extends IRouterParamContext>(options: {
     queries: Queries,
@@ -45,7 +46,7 @@ export const makeHandleRegisterPost = <StateT, ContextT extends IRouterParamCont
     tasks: Tasks,
     scheduler: Scheduler,
     handlers: Handlers,
-}): Middleware<StateT, WithInertiaContext<ContextT>> => {
+}): Middleware<StateT, AuthRouterContext<ContextT>> => {
 
     const {
         handlers: {
@@ -94,10 +95,23 @@ export const makeHandleRegisterPost = <StateT, ContextT extends IRouterParamCont
             return ctx.inertia.render('Register', {error: 'password is not empty', email})
         }
 
+        if (!emailRegEx.test(email)) {
+            return ctx.inertia.render('Register', {error: 'email bad', email})
+        }
+
         const user = await findUserByEmail(email);
 
         if (user) {
             return ctx.inertia.render('Register', {error: 'email already exists', email})
+        }
+
+        const passwordChecker = buildPasswordChecker(
+            ctx.signInExperience.passwordPolicy)
+
+        const issues = passwordChecker.check(password);
+
+        if (issues.length > 0) {
+            return ctx.inertia.render('Register', {error: JSON.stringify(issues), email})
         }
 
         const id = generateStandardId()
