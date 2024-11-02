@@ -37,7 +37,7 @@ export const makeHandleRegisterGet = <StateT, ContextT extends IRouterParamConte
             return;
         }
 
-        ctx.inertia.render('Register')
+        return ctx.inertia.render('Register')
     }
 }
 

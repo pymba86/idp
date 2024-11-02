@@ -12,6 +12,7 @@ import {makeHandleTokenPost} from "./token.js";
 import errorHandler from "./error-handler.js";
 import {makeHandleActivateGet} from "./activate.js";
 import koaSignInExperience from "../middlewares/koa-sign-in-experience.js";
+import {makeHandleProviderGet} from "./provider.js";
 
 
 const createRouters = (options: RouterOptions) => {
@@ -48,6 +49,11 @@ const createRouters = (options: RouterOptions) => {
         queries,
         handlers,
         libraries
+    }))
+
+    router.get('/provider/:id', makeHandleProviderGet({
+        queries,
+        handlers
     }))
 
     router.get('/login', makeHandleLoginGet({

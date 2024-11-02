@@ -3,13 +3,12 @@ import Router from "koa-router";
 import {AuthRouter, RouterOptions} from "./types.js";
 import koaAuth from "../middlewares/koa-auth.js";
 import {exportJWK} from "../utils/jwks.js";
+import statusRoutes from "./status.js";
+import callbackRoutes from "./callback.js";
 
 const createRouters = (options: RouterOptions) => {
 
     const {
-        handlers: {
-            template
-        },
         libraries: {
             jwt
         }
@@ -17,10 +16,8 @@ const createRouters = (options: RouterOptions) => {
 
     const router = new Router();
 
-    router.get('/', async (ctx, next) => {
-        ctx.body = await template.renderAsync('index', {name: 'idp'})
-        return next()
-    })
+    statusRoutes(router)
+    callbackRoutes(router)
 
     router.get('/jwks', async (ctx) => {
 

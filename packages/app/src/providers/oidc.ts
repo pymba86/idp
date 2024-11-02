@@ -4,8 +4,8 @@ import {ProviderMetadata, GetAuthorizationUri, GetUserInfo} from "./definitions.
 import {constructAuthorizationUri, getIdToken, validateConfig} from "./utils.js";
 import {ProviderError, ProviderErrorCodes} from "./error.js";
 import {assert} from "../utils/assert.js";
-import {idTokenProfileStandardClaimsGuard, oidcProviderConfigGuard} from "./schema.js";
 import {conditional} from "../utils/conditional.js";
+import {idTokenProfileStandardClaimsGuard, oidcProviderConfigGuard} from "@astoniq/idp-schemas";
 
 const getAuthorizationUri: GetAuthorizationUri = async (options, setContext) => {
 

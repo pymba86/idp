@@ -12,10 +12,7 @@ export const oauth2ProviderConfigGuard = z.object({
     tokenEndpoint: z.string(),
     clientId: z.string(),
     clientSecret: z.string(),
-    tokenEndpointAuthMethod: z
-        .nativeEnum(TokenEndpointAuthMethod)
-        .optional()
-        .default(TokenEndpointAuthMethod.ClientSecretPost),
+    tokenEndpointAuthMethod: z.nativeEnum(TokenEndpointAuthMethod),
     scope: z.string().optional(),
 })
 

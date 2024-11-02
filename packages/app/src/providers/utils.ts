@@ -3,9 +3,13 @@ import {ProviderError, ProviderErrorCodes} from "./error.js";
 import {removeUndefinedKeys} from "../utils/object.js";
 import snakecaseKeys from "snakecase-keys";
 import ky, {HTTPError, KyResponse} from 'ky';
-import {TokenEndpointAuthMethod} from "./oauth2.js";
-import {AccessTokenResponse, accessTokenResponseGuard, authResponseGuard, OidcConnectorConfig} from "./schema.js";
-import {jsonGuard} from "@astoniq/idp-schemas";
+import {
+    AccessTokenResponse,
+    accessTokenResponseGuard, authResponseGuard,
+    jsonGuard,
+    OidcConnectorConfig,
+    TokenEndpointAuthMethod
+} from "@astoniq/idp-schemas";
 import {Json} from "@astoniq/idp-shared";
 
 type TokenEndpointAuthOptions = {
