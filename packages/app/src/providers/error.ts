@@ -1,4 +1,4 @@
-export enum ConnectorErrorCodes {
+export enum ProviderErrorCodes {
     General = 'general',
     InvalidMetadata = 'invalid_metadata',
     UnexpectedType = 'unexpected_type',
@@ -18,12 +18,12 @@ export enum ConnectorErrorCodes {
     AuthorizationFailed = 'authorization_failed',
 }
 
-export class ConnectorError extends Error {
-    public code: ConnectorErrorCodes;
+export class ProviderError extends Error {
+    public code: ProviderErrorCodes;
     public data: unknown;
 
-    constructor(code: ConnectorErrorCodes, data?: unknown) {
-        const message = `ConnectorError: ${data ? JSON.stringify(data) : code}`;
+    constructor(code: ProviderErrorCodes, data?: unknown) {
+        const message = `ProviderError: ${data ? JSON.stringify(data) : code}`;
         super(message);
         this.code = code;
         this.data = typeof data === 'string' ? { message: data } : data;

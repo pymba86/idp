@@ -2,12 +2,12 @@
 import {generateStandardId} from "@astoniq/idp-shared";
 import {ProviderMetadata, GetAuthorizationUri, GetUserInfo} from "./definitions.js";
 import {constructAuthorizationUri, getIdToken, validateConfig} from "./utils.js";
-import {ConnectorError, ConnectorErrorCodes} from "./error.js";
+import {ProviderError, ProviderErrorCodes} from "./error.js";
 import {assert} from "../utils/assert.js";
 import {idTokenProfileStandardClaimsGuard, oidcProviderConfigGuard} from "./schema.js";
 import {conditional} from "../utils/conditional.js";
 
-const getAuthorizationUri: GetAuthorizationUri = async (options, setSession) => {
+const getAuthorizationUri: GetAuthorizationUri = async (options, setContext) => {
 
     const {config, state, redirectUri} = options
 
@@ -15,7 +15,7 @@ const getAuthorizationUri: GetAuthorizationUri = async (options, setSession) => 
 
     const nonce = generateStandardId();
 
-    await setSession({nonce, redirectUri})
+    await setContext({nonce, redirectUri})
 
     const {
         authorizationEndpoint,
@@ -38,25 +38,25 @@ const getAuthorizationUri: GetAuthorizationUri = async (options, setSession) => 
     })
 }
 
-const getUserInfo: GetUserInfo = async (options, getSession) => {
+const getUserInfo: GetUserInfo = async (options, getContext) => {
 
     const {config, data} = options
 
     validateConfig(config, oidcProviderConfigGuard);
 
-    const {nonce, redirectUri} = await getSession();
+    const {nonce, redirectUri} = await getContext();
 
     assert(
         redirectUri,
-        new ConnectorError(ConnectorErrorCodes.General, {
-            message: "can not find 'redirectUri' from connector session.",
+        new ProviderError(ProviderErrorCodes.General, {
+            message: "can not find 'redirectUri' from provider session.",
         })
     );
 
     const { id_token: idToken } = await getIdToken(config, data, redirectUri);
 
     if (!idToken) {
-        throw new ConnectorError(ConnectorErrorCodes.IdTokenInvalid, {
+        throw new ProviderError(ProviderErrorCodes.IdTokenInvalid, {
             message: 'Cannot find ID Token.',
         });
     }
@@ -64,15 +64,18 @@ const getUserInfo: GetUserInfo = async (options, getSession) => {
     const [compactHeader, compactPayload, compactSignature] = idToken.split('.');
 
     if (!compactHeader || !compactPayload || !compactSignature) {
-        throw new ConnectorError(ConnectorErrorCodes.IdTokenInvalid, {
+        throw new ProviderError(ProviderErrorCodes.IdTokenInvalid, {
             message: "ID Token is invalid",
         });
     }
 
-    const result = idTokenProfileStandardClaimsGuard.safeParse(compactPayload);
+    const protectedPayload = JSON.parse(
+        Buffer.from(compactPayload, 'base64url').toString());
+
+    const result = idTokenProfileStandardClaimsGuard.safeParse(protectedPayload);
 
     if (!result.success) {
-        throw new ConnectorError(ConnectorErrorCodes.IdTokenInvalid, result.error);
+        throw new ProviderError(ProviderErrorCodes.IdTokenInvalid, result.error);
     }
 
     const {
@@ -85,14 +88,14 @@ const getUserInfo: GetUserInfo = async (options, getSession) => {
     if (validationNonce) {
         assert(
             nonce,
-            new ConnectorError(ConnectorErrorCodes.General, {
+            new ProviderError(ProviderErrorCodes.General, {
                 message: 'Cannot find `nonce` in session storage.',
             })
         );
 
         assert(
             validationNonce === nonce,
-            new ConnectorError(ConnectorErrorCodes.IdTokenInvalid, {
+            new ProviderError(ProviderErrorCodes.IdTokenInvalid, {
                 message: 'ID Token validation failed due to `nonce` mismatch.',
             })
         );

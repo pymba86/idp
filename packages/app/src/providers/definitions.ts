@@ -1,34 +1,16 @@
-import {z, ZodType} from "zod";
+import {ProviderContext, UserInfo} from "@astoniq/idp-schemas";
+import {ZodType} from "zod";
 
-export type UserInfo = {
-    id: string;
-    email?: string;
-}
+export type GetContext = () => Promise<ProviderContext>;
 
-export const userInfoGuard: ZodType<UserInfo> = z.object({
-    id: z.string(),
-    email: z.string().optional()
-})
-
-export const providerSessionGuard = z.object({
-    nonce: z.string(),
-    redirectUri: z.string(),
-    providerId: z.string(),
-    state: z.string()
-}).partial()
-
-export type ProviderSession = z.infer<typeof providerSessionGuard>;
-
-export type GetSession = () => Promise<ProviderSession>;
-
-export type SetSession = (session: ProviderSession) => Promise<void>;
+export type SetContext = (session: ProviderContext) => Promise<void>;
 
 export type GetUserInfoOptions = {
     data: unknown
     config: unknown
 }
 
-export type GetUserInfo = (options: GetUserInfoOptions, getSession: GetSession) => Promise<UserInfo>;
+export type GetUserInfo = (options: GetUserInfoOptions, getContext: GetContext) => Promise<UserInfo>;
 
 export type AuthorizationUriOptions = {
     state: string;
@@ -37,7 +19,7 @@ export type AuthorizationUriOptions = {
     config: unknown
 }
 
-export type GetAuthorizationUri = (options: AuthorizationUriOptions, setSession: SetSession) => Promise<string>
+export type GetAuthorizationUri = (options: AuthorizationUriOptions, setContext: SetContext) => Promise<string>
 
 export type ProviderMetadata = {
     getUserInfo: GetUserInfo;

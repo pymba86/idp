@@ -1,5 +1,5 @@
 import {ZodType, ZodTypeDef} from "zod";
-import {ConnectorError, ConnectorErrorCodes} from "./error.js";
+import {ProviderError, ProviderErrorCodes} from "./error.js";
 import {removeUndefinedKeys} from "../utils/object.js";
 import snakecaseKeys from "snakecase-keys";
 import ky, {HTTPError, KyResponse} from 'ky';
@@ -46,7 +46,7 @@ export const requestTokenEndpoint = async ({
             });
         } catch (error: unknown) {
             if (error instanceof HTTPError) {
-                throw new ConnectorError(ConnectorErrorCodes.General, JSON.stringify(error.response.body));
+                throw new ProviderError(ProviderErrorCodes.General, JSON.stringify(error.response.body));
             }
 
             throw error;
@@ -76,13 +76,13 @@ export const requestTokenEndpoint = async ({
 
 export const parseJson = (
     jsonString: string,
-    errorCode: ConnectorErrorCodes = ConnectorErrorCodes.InvalidResponse,
+    errorCode: ProviderErrorCodes = ProviderErrorCodes.InvalidResponse,
     errorPayload?: unknown
 ): Json => {
     try {
         return jsonGuard.parse(JSON.parse(jsonString));
     } catch {
-        throw new ConnectorError(errorCode, errorPayload ?? jsonString);
+        throw new ProviderError(errorCode, errorPayload ?? jsonString);
     }
 };
 
@@ -90,7 +90,7 @@ const accessTokenResponseHandler = async (response: KyResponse): Promise<AccessT
     const result = accessTokenResponseGuard.safeParse(parseJson(await response.text()));
 
     if (!result.success) {
-        throw new ConnectorError(ConnectorErrorCodes.InvalidResponse, result.error);
+        throw new ProviderError(ProviderErrorCodes.InvalidResponse, result.error);
     }
 
     return result.data;
@@ -104,7 +104,7 @@ export const getIdToken = async (
     const result = authResponseGuard.safeParse(data);
 
     if (!result.success) {
-        throw new ConnectorError(ConnectorErrorCodes.General, data);
+        throw new ProviderError(ProviderErrorCodes.General, data);
     }
 
     const { code } = result.data;
@@ -143,7 +143,7 @@ export function validateConfig<Output, Input = Output>(
     const result = guard.safeParse(config);
 
     if (!result.success) {
-        throw new ConnectorError(ConnectorErrorCodes.InvalidConfig, result.error);
+        throw new ProviderError(ProviderErrorCodes.InvalidConfig, result.error);
     }
 }
 
