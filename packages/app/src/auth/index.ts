@@ -13,6 +13,8 @@ import errorHandler from "./error-handler.js";
 import {makeHandleActivateGet} from "./activate.js";
 import koaSignInExperience from "../middlewares/koa-sign-in-experience.js";
 import {makeHandleProviderGet} from "./provider.js";
+import {makeHandlePasswordGet, makeHandlePasswordPost} from "./password.js";
+import {makeHandleVerifyGet} from "./verify.js";
 
 
 const createRouters = (options: RouterOptions) => {
@@ -56,6 +58,11 @@ const createRouters = (options: RouterOptions) => {
         handlers
     }))
 
+    router.get('/verify', makeHandleVerifyGet({
+        queries,
+        handlers
+    }))
+
     router.get('/login', makeHandleLoginGet({
         queries,
         handlers
@@ -70,6 +77,16 @@ const createRouters = (options: RouterOptions) => {
         queries,
         tasks,
         scheduler,
+        handlers
+    }))
+
+    router.get('/password', makeHandlePasswordGet({
+        queries,
+        handlers
+    }))
+
+    router.post('/password', makeHandlePasswordPost({
+        queries,
         handlers
     }))
 

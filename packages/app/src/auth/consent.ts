@@ -37,7 +37,7 @@ export const makeHandleConsentGet = <StateT, ContextT extends IRouterParamContex
             return;
         }
 
-        if (!authContext.authCompleted) {
+        if (!authContext.verifyCompleted) {
             ctx.redirect('/auth/bad')
             return;
         }
@@ -190,7 +190,7 @@ export const makeHandleConsentPost = <StateT, ContextT>(options: {
             return
         }
 
-        if (!authContext.authCompleted) {
+        if (!authContext.verifyCompleted) {
             ctx.redirect('/auth/bad');
             return
         }

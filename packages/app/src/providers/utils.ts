@@ -155,6 +155,7 @@ export const constructAuthorizationUri = (
     authorizationEndpoint: string,
     queryParameters: {
         responseType: string,
+        responseMode: string,
         clientId: string
         scope?: string
         redirectUri: string

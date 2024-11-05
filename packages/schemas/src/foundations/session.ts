@@ -3,6 +3,7 @@ import {ProviderAction} from "./provider.js";
 
 export const authContextGuard = z.object({
     id: z.string(),
+    email: z.string(),
     clientId: z.string(),
     redirectUri: z.string(),
     responseType: z.string(),
@@ -10,6 +11,7 @@ export const authContextGuard = z.object({
     scope: z.string(),
     userId: z.string(),
     authCompleted: z.boolean(),
+    verifyCompleted: z.boolean(),
 }).partial()
 
 export type AuthContext = z.infer<typeof authContextGuard>;

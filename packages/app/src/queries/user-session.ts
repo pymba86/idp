@@ -3,7 +3,7 @@ import {userSessionGuard} from "@astoniq/idp-schemas";
 import {convertToIdentifiers, expandFields} from "../utils/sql.js";
 import {userSessionEntity} from "../entities/index.js";
 import {assertThat} from "../utils/assert-that.js";
-import {InsertionError} from "../errors/slonik-error.js";
+import {InsertionError} from "../errors/index.js";
 
 const {table, fields} = convertToIdentifiers(userSessionEntity);
 

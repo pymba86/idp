@@ -137,7 +137,7 @@ export const makeHandleAuthorization = <StateT, ContextT extends IRouterParamCon
 
             await session.commit()
 
-            return ctx.redirect(`/auth/consent`);
+            return ctx.redirect(`/auth/verify`);
         }
 
         session.data.authContext = req

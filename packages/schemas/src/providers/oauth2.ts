@@ -7,6 +7,7 @@ export enum TokenEndpointAuthMethod {
 
 export const oauth2ProviderConfigGuard = z.object({
     responseType: z.literal('code'),
+    responseMode: z.literal('query'),
     grantType: z.literal('authorization_code'),
     authorizationEndpoint: z.string(),
     tokenEndpoint: z.string(),

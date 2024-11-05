@@ -1,17 +1,19 @@
 <template>
-  <div>login</div>
+  <div>password</div>
+  <div>email: {{ email }}</div>
   <form method="post">
-    <input type="text"  name="email" v-model="email">
-    <button>login</button>
+    <input type="text" name="password">
+    <button>continue</button>
   </form>
-  {{error}}
-  <Link href="/auth/register">Register</Link>
+  {{ error }}
+  <Link href="/auth/login">back</Link>
 </template>
 
 <script lang='ts'>
 
-import {defineComponent, ref} from 'vue';
+import {defineComponent} from 'vue';
 import {Link} from '@inertiajs/vue3';
+
 export default defineComponent({
   props: {
     error: {
@@ -25,14 +27,6 @@ export default defineComponent({
   },
   components: {
     Link
-  },
-  setup(props) {
-
-    const email = ref(props.email)
-
-    return {
-      email
-    }
   },
 });
 

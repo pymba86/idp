@@ -6,7 +6,7 @@ import {hashValue} from "../utils/hash.js";
 import {logger} from "../utils/logger.js";
 
 const email = getEnv('ADMIN_USER_EMAIL', 'admin@example.com')
-const password = getEnv('ADMIN_USER_PASSWORD', 'admin@example.com')
+const password = getEnv('ADMIN_USER_PASSWORD', 'admin')
 
 const migration: MigrationScript = {
     up: async (pool) => {

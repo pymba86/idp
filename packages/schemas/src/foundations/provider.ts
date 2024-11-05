@@ -4,8 +4,13 @@ export enum ProviderType {
     Oidc = 'oidc'
 }
 
+export const providerDomainsGuard = z.array(z.string());
+
+export type ProviderDomains = z.infer<typeof providerDomainsGuard>
+
 export enum ProviderAction {
-    Auth = 'auth'
+    Auth = 'auth',
+    Link = 'link'
 }
 
 export type UserInfo = {
