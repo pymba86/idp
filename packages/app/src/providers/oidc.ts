@@ -1,10 +1,70 @@
 import {generateStandardId} from "@astoniq/idp-shared";
 import {ProviderMetadata, GetAuthorizationUri, GetUserInfo} from "./definitions.js";
-import {constructAuthorizationUri, getIdToken, validateConfig} from "./utils.js";
+import {constructAuthorizationUri, parseJson, requestTokenEndpoint, validateConfig} from "./utils.js";
 import {ProviderError, ProviderErrorCodes} from "./error.js";
 import {assert} from "../utils/assert.js";
 import {conditional} from "../utils/conditional.js";
-import {idTokenProfileStandardClaimsGuard, oidcProviderConfigGuard} from "@astoniq/idp-schemas";
+import {
+    OidcTokenResponse,
+    oidcTokenResponseGuard,
+    oidcAuthResponseGuard,
+    idTokenClaimsGuard,
+    OidcProviderConfig,
+    oidcProviderConfigGuard
+} from "@astoniq/idp-schemas";
+import {KyResponse} from "ky";
+
+const oidcTokenResponseHandler = async (response: KyResponse): Promise<OidcTokenResponse> => {
+
+    const result = oidcTokenResponseGuard.safeParse(
+        parseJson(await response.text()));
+
+    if (!result.success) {
+        throw new ProviderError(ProviderErrorCodes.InvalidResponse, result.error);
+    }
+
+    return result.data;
+};
+
+export const getIdToken = async (
+    config: OidcProviderConfig,
+    data: unknown,
+    redirectUri: string
+) => {
+    const result = oidcAuthResponseGuard.safeParse(data);
+
+    if (!result.success) {
+        throw new ProviderError(ProviderErrorCodes.General, data);
+    }
+
+    const { code } = result.data;
+
+    const {
+        tokenEndpoint,
+        grantType,
+        clientId,
+        clientSecret,
+        tokenEndpointAuthMethod,
+        customConfig,
+    } = config;
+
+    const tokenResponse = await requestTokenEndpoint({
+        tokenEndpoint,
+        tokenEndpointAuthOptions: {
+            method: tokenEndpointAuthMethod,
+        },
+        tokenRequestBody: {
+            grantType,
+            code,
+            redirectUri,
+            clientId,
+            clientSecret,
+            ...customConfig,
+        },
+    });
+
+    return oidcTokenResponseHandler(tokenResponse);
+};
 
 const getAuthorizationUri: GetAuthorizationUri = async (options, setContext) => {
 
@@ -19,7 +79,7 @@ const getAuthorizationUri: GetAuthorizationUri = async (options, setContext) => 
         state,
         redirectUri,
         action,
-        providerId
+        providerId,
     })
 
     const {
@@ -79,14 +139,19 @@ const getUserInfo: GetUserInfo = async (options, getContext) => {
     const protectedPayload = JSON.parse(
         Buffer.from(compactPayload, 'base64url').toString());
 
-    const result = idTokenProfileStandardClaimsGuard.safeParse(protectedPayload);
+    const mappedUserClaims = Object.fromEntries(
+        Object.entries(config.idTokenClaimsMapConfig)
+            .map(([destination, source]) => [destination, protectedPayload[source]])
+    );
+
+    const result = idTokenClaimsGuard.safeParse(mappedUserClaims);
 
     if (!result.success) {
         throw new ProviderError(ProviderErrorCodes.IdTokenInvalid, result.error);
     }
 
     const {
-        sub: id,
+        id,
         name,
         email,
         nonce: validationNonce,

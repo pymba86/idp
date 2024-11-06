@@ -47,8 +47,7 @@ export default function callbackRoutes<T extends Router>(router: T, options: Rou
 
         const {
             userInfo,
-            session,
-            provider
+            session
         } = options;
 
         const {
@@ -59,7 +58,7 @@ export default function callbackRoutes<T extends Router>(router: T, options: Rou
             return '/bad'
         }
 
-        const userProvider = await findUserProviderByIdentityId(provider.id, userInfo.id);
+        const userProvider = await findUserProviderByIdentityId(userInfo.id);
 
         if (userProvider) {
             // Если поставщик уже привязан к пользователю
@@ -166,7 +165,7 @@ export default function callbackRoutes<T extends Router>(router: T, options: Rou
                 {
                     config: provider.config,
                     baseUrl: baseUrl,
-                    data: request
+                    data: ctx.query
                 },
                 async () => providerContext)
 

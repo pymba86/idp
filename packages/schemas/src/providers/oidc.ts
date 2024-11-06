@@ -1,5 +1,5 @@
 import {z} from "zod";
-import {oauth2ProviderConfigGuard} from "./oauth2.js";
+import {oauth2ConfigGuard} from "./oauth2.js";
 
 const scopeOpenid = 'openid';
 export const delimiter = /[ +]/;
@@ -26,31 +26,39 @@ export const authRequestOptionalConfigGuard = z
     })
     .partial();
 
-export const idTokenProfileStandardClaimsGuard = z.object({
-    sub: z.string(),
-    name: z.string().nullish(),
-    email: z.string().nullish(),
-    nonce: z.string().nullish(),
+export const idTokenClaimsMapGuard = z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string(),
+    nonce: z.string(),
 });
 
-export const oidcProviderConfigGuard = oauth2ProviderConfigGuard.extend({
+export const idTokenClaimsGuard = z.object({
+    id: z.string().or(z.number()).transform(String),
+    name: z.string().optional(),
+    email: z.string().optional(),
+    nonce: z.string().optional(),
+});
+
+export const oidcProviderConfigGuard = oauth2ConfigGuard.extend({
     scope: z.string().transform(scopePostProcessor),
     authRequestOptionalConfig: authRequestOptionalConfigGuard.optional(),
     customConfig: z.record(z.string()).optional(),
+    idTokenClaimsMapConfig: idTokenClaimsMapGuard
 })
 
-export type OidcConnectorConfig = z.infer<typeof oidcProviderConfigGuard>;
+export type OidcProviderConfig = z.infer<typeof oidcProviderConfigGuard>;
 
-export const authResponseGuard = z
+export const oidcAuthResponseGuard = z
     .object({
         code: z.string(),
         state: z.string().optional(),
     })
     .catchall(z.string());
 
-export type AuthResponse = z.infer<typeof authResponseGuard>;
+export type OidcAuthResponse = z.infer<typeof oidcAuthResponseGuard>;
 
-export const accessTokenResponseGuard = z.object({
+export const oidcTokenResponseGuard = z.object({
     id_token: z.string(),
     access_token: z.string().optional(),
     token_type: z.string().optional(),
@@ -60,4 +68,4 @@ export const accessTokenResponseGuard = z.object({
     code: z.string().optional(),
 });
 
-export type AccessTokenResponse = z.infer<typeof accessTokenResponseGuard>;
+export type OidcTokenResponse = z.infer<typeof oidcTokenResponseGuard>;

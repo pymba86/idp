@@ -1,7 +1,8 @@
 import {z, ZodType} from "zod";
 
 export enum ProviderType {
-    Oidc = 'oidc'
+    Oidc = 'oidc',
+    Oauth2 = 'oauth2'
 }
 
 export const providerDomainsGuard = z.array(z.string());

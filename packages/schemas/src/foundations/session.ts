@@ -1,4 +1,4 @@
-import { z} from "zod";
+import {z} from "zod";
 import {ProviderAction, userInfoGuard} from "./provider.js";
 
 export const authContextGuard = z.object({
@@ -22,7 +22,9 @@ export const providerContextGuard = z.object({
     nonce: z.string(),
     redirectUri: z.string(),
     providerId: z.string(),
-    state: z.string()
+    state: z.string(),
+    codeVerifier: z.string(),
+    codeChallenge: z.string()
 }).partial()
 
 export type ProviderContext = z.infer<typeof providerContextGuard>;

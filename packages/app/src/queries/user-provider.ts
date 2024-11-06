@@ -7,12 +7,11 @@ const {table, fields} = convertToIdentifiers(userProviderEntity);
 
 export const createUserProviderQueries = (pool: CommonQueryMethods) => {
 
-    const findUserProviderByIdentityId = async (providerId: string, identityId: string) =>
+    const findUserProviderByIdentityId = async (identityId: string) =>
         pool.maybeOne(sql.type(userProviderGuard)`
             select ${expandFields(fields)}
             from ${table}
             where ${fields.identityId} = ${identityId}
-            and ${fields.providerId} = ${providerId}
         `)
 
     return {

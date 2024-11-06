@@ -2,15 +2,12 @@ import {ZodType, ZodTypeDef} from "zod";
 import {ProviderError, ProviderErrorCodes} from "./error.js";
 import {removeUndefinedKeys} from "../utils/object.js";
 import snakecaseKeys from "snakecase-keys";
-import ky, {HTTPError, KyResponse} from 'ky';
+import ky, {HTTPError} from 'ky';
 import {
-    AccessTokenResponse,
-    accessTokenResponseGuard, authResponseGuard,
-    jsonGuard,
-    OidcConnectorConfig,
+    jsonGuard, jsonObjectGuard,
     TokenEndpointAuthMethod
 } from "@astoniq/idp-schemas";
-import {Json} from "@astoniq/idp-shared";
+import {Json, JsonObject} from "@astoniq/idp-shared";
 
 type TokenEndpointAuthOptions = {
     method: TokenEndpointAuthMethod;
@@ -25,7 +22,7 @@ export type RequestTokenEndpointOptions = {
         redirectUri: string;
         clientId: string;
         clientSecret: string;
-    } & Record<string, string>;
+    } & Record<string, string | undefined>;
     timeout?: number;
 };
 
@@ -39,7 +36,7 @@ export const requestTokenEndpoint = async ({
                                          form,
                                          headers,
                                      }: {
-        form: Record<string, string>;
+        form: Record<string, string | undefined>;
         headers?: Record<string, string>;
     }) => {
         try {
@@ -90,54 +87,16 @@ export const parseJson = (
     }
 };
 
-const accessTokenResponseHandler = async (response: KyResponse): Promise<AccessTokenResponse> => {
-    const result = accessTokenResponseGuard.safeParse(parseJson(await response.text()));
-
-    if (!result.success) {
-        throw new ProviderError(ProviderErrorCodes.InvalidResponse, result.error);
+export const parseJsonObject = (
+    ...[jsonString, errorCode = ProviderErrorCodes.InvalidResponse, errorPayload]: Parameters<
+        typeof parseJson
+    >
+): JsonObject => {
+    try {
+        return jsonObjectGuard.parse(JSON.parse(jsonString));
+    } catch {
+        throw new ProviderError(errorCode, errorPayload ?? jsonString);
     }
-
-    return result.data;
-};
-
-export const getIdToken = async (
-    config: OidcConnectorConfig,
-    data: unknown,
-    redirectUri: string
-) => {
-    const result = authResponseGuard.safeParse(data);
-
-    if (!result.success) {
-        throw new ProviderError(ProviderErrorCodes.General, data);
-    }
-
-    const { code } = result.data;
-
-    const {
-        tokenEndpoint,
-        grantType,
-        clientId,
-        clientSecret,
-        tokenEndpointAuthMethod,
-        customConfig,
-    } = config;
-
-    const tokenResponse = await requestTokenEndpoint({
-        tokenEndpoint,
-        tokenEndpointAuthOptions: {
-            method: tokenEndpointAuthMethod,
-        },
-        tokenRequestBody: {
-            grantType,
-            code,
-            redirectUri,
-            clientId,
-            clientSecret,
-            ...customConfig,
-        },
-    });
-
-    return accessTokenResponseHandler(tokenResponse);
 };
 
 export function validateConfig<Output, Input = Output>(
@@ -160,7 +119,7 @@ export const constructAuthorizationUri = (
         scope?: string
         redirectUri: string
         state: string
-    } & Record<string, string>
+    } & Record<string, string | undefined>
 ) =>
     `${authorizationEndpoint}?${new URLSearchParams(
         removeUndefinedKeys(snakecaseKeys(queryParameters))
