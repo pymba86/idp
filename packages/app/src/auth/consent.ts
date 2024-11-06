@@ -31,7 +31,6 @@ export const makeHandleConsentGet = <StateT, ContextT extends IRouterParamContex
 
         const {authContext} = session.data;
 
-
         if (!authContext) {
             ctx.redirect('/auth/bad')
             return;
@@ -67,22 +66,20 @@ export const makeHandleConsentGet = <StateT, ContextT extends IRouterParamContex
             )
 
             if (!consent) {
-                ctx.inertia.render('Consent')
-                return
+                return ctx.inertia.render('Consent')
             }
         }
 
         if (!authContext.responseMode) {
-            ctx.redirect('/auth/bad');
-            return
+            return ctx.redirect('/auth/bad');
         }
 
         try {
             const code = await createAuthCode(session.data, options.queries)
 
+
             if (!code) {
-                ctx.redirect('/auth/bad');
-                return
+                return ctx.redirect('/auth/bad');
             }
 
             delete session.data.authContext;
@@ -95,9 +92,8 @@ export const makeHandleConsentGet = <StateT, ContextT extends IRouterParamContex
             }
 
         } catch (error) {
-            ctx.redirect('/auth/bad')
+            return ctx.redirect('/auth/bad')
         }
-
     }
 }
 
@@ -106,12 +102,14 @@ const createAuthCode = async (sessionData: Partial<SessionStoreData>, queries: Q
     const id = generateStandardId()
     const {authContext, userSessionId} = sessionData
 
+    console.log(sessionData)
+
     if (!authContext) {
         return
     }
 
     if (!authContext.userId) {
-       throw new Error('')
+        throw new Error('')
     }
 
     if (!authContext.redirectUri) {

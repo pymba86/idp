@@ -15,6 +15,13 @@ export const createProviderQueries = (pool: CommonQueryMethods) => {
               and ${fields.link} = true
         `)
 
+    const findProviderById = async (id: string) =>
+        pool.maybeOne(sql.type(providerGuard)`
+            select ${expandFields(fields)}
+            from ${table}
+            where ${fields.id} = ${id}
+        `)
+
     const findProvidersSso = async () =>
         pool.any(sql.type(providerGuard)`
             select ${expandFields(fields)}
@@ -24,6 +31,7 @@ export const createProviderQueries = (pool: CommonQueryMethods) => {
 
     return {
         findProvidersSso,
+        findProviderById,
         findProviderLinkById
     }
 }

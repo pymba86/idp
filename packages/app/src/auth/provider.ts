@@ -30,12 +30,15 @@ export const makeHandleProviderGet = <StateT, ContextT extends IRouterParamConte
             id
         } = ctx.params
 
-        if (typeof id !== 'string') {
-            ctx.inertia.render('Error', {error: 'provider id required'})
-            return;
+        const session = await getSession(ctx);
+
+        if (!session.data.authContext) {
+            return ctx.inertia.render('Error', {error: 'auth context not found'})
         }
 
-        const session = await getSession(ctx);
+        if (typeof id !== 'string') {
+            return ctx.inertia.render('Error', {error: 'provider id required'})
+        }
 
         const provider = await findProviderLinkById(id);
 

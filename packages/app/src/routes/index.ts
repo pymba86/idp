@@ -17,7 +17,7 @@ const createRouters = (options: RouterOptions) => {
     const router = new Router();
 
     statusRoutes(router)
-    callbackRoutes(router)
+    callbackRoutes(router, options)
 
     router.get('/jwks', async (ctx) => {
 

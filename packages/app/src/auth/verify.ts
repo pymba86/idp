@@ -36,12 +36,12 @@ export const makeHandleVerifyGet = <StateT, ContextT extends IRouterParamContext
         }
 
         if (!authContext.userId) {
-            return ctx.redirect('/auth/bad')
+            return ctx.inertia.render('Verify', {
+                userInfo: authContext.userInfo
+            })
         }
 
-        if (userSessionId) {
-            // Пользователь прошел верификацию раньше
-        } else {
+        if (!userSessionId) {
 
             const id = generateStandardId()
 
@@ -53,11 +53,9 @@ export const makeHandleVerifyGet = <StateT, ContextT extends IRouterParamContext
 
         // OTP проверка
 
-        session.data = {
-            authContext: {
-                ...authContext,
-                verifyCompleted: true,
-            },
+        session.data.authContext = {
+            ...authContext,
+            verifyCompleted: true,
         };
 
         await session.commit()

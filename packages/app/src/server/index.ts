@@ -54,7 +54,8 @@ export async function startServer(options: ServerOptions) {
     app.use(mount('/', initApis({
         handlers,
         libraries,
-        tasks
+        tasks,
+        queries
     })))
 
     app.use(mount('/auth', initAuthApis({

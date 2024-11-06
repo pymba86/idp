@@ -1,5 +1,5 @@
 import { z} from "zod";
-import {ProviderAction} from "./provider.js";
+import {ProviderAction, userInfoGuard} from "./provider.js";
 
 export const authContextGuard = z.object({
     id: z.string(),
@@ -12,6 +12,7 @@ export const authContextGuard = z.object({
     userId: z.string(),
     authCompleted: z.boolean(),
     verifyCompleted: z.boolean(),
+    userInfo: userInfoGuard
 }).partial()
 
 export type AuthContext = z.infer<typeof authContextGuard>;
