@@ -20,6 +20,7 @@ import {
 import {ProviderError, ProviderErrorCodes} from "./error.js";
 import {assert} from "../utils/assert.js";
 import {JsonObject} from "@astoniq/idp-shared";
+import {getSafe} from "../utils/get.js";
 
 const oauth2TokenResponseHandler = async (
     response: KyResponse,
@@ -128,7 +129,8 @@ const userProfileMapping = (
 ) => {
     const mappedUserProfile = Object.fromEntries(
         Object.entries(keyMapping)
-            .map(([destination, source]) => [destination, data[source]])
+            .map(([destination, source]) => [destination, getSafe(data, source)])
+            .filter(([_, value]) => value)
     );
 
     const result = userProfileGuard.safeParse(mappedUserProfile);

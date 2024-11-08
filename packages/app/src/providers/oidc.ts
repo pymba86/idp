@@ -13,6 +13,7 @@ import {
     oidcProviderConfigGuard
 } from "@astoniq/idp-schemas";
 import {KyResponse} from "ky";
+import {getSafe} from "../utils/get.js";
 
 const oidcTokenResponseHandler = async (response: KyResponse): Promise<OidcTokenResponse> => {
 
@@ -141,7 +142,8 @@ const getUserInfo: GetUserInfo = async (options, getContext) => {
 
     const mappedUserClaims = Object.fromEntries(
         Object.entries(config.idTokenClaimsMapConfig)
-            .map(([destination, source]) => [destination, protectedPayload[source]])
+            .map(([destination, source]) => [destination, getSafe(protectedPayload, source)])
+            .filter(([_, value]) => value)
     );
 
     const result = idTokenClaimsGuard.safeParse(mappedUserClaims);
